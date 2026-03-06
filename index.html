@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartValuation — Fundamental Stock Analysis · India</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0a1628;
+  --card:      #0f2040;
+  --card2:     #112348;
+  --border:    #1a3a5c;
+  --border2:   #1e4570;
+  --blue:      #3b9eff;
+  --blue-dim:  #1a5ea0;
+  --gold:      #e8b84b;
+  --gold-dim:  #a07a20;
+  --green:     #2ecc8a;
+  --red:       #e74c3c;
+  --orange:    #f39c12;
+  --text:      #f0f4fa;
+  --text2:     #c8d4e0;
+  --text3:     #8899aa;
+  --mono:      'DM Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(59,158,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 90% 50%, rgba(232,184,75,0.04) 0%, transparent 50%);
+}
+
+/* ── HEADER ── */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,22,40,0.95);
+  backdrop-filter: blur(12px);
+}
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.logo-name {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.logo-name span { color: var(--blue); }
+.logo-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.header-right {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* ── SEARCH PANEL ── */
+.search-panel {
+  max-width: 760px;
+  margin: 60px auto 40px;
+  padding: 0 24px;
+  animation: fadeUp 0.5s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.search-headline {
+  font-family: var(--display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+.search-headline span { color: var(--blue); }
+.search-sub {
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.search-input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  outline: none;
+  transition: border 0.2s;
+  text-transform: uppercase;
+}
+.search-input::placeholder { color: var(--text3); text-transform: none; font-family: var(--sans); font-size: 14px; }
+.search-input:focus { border-color: var(--blue); }
+.search-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+.search-btn:hover { background: #5aadff; }
+.search-btn:active { transform: scale(0.97); }
+.search-btn:disabled { background: var(--border); cursor: not-allowed; }
+
+/* Advanced settings toggle */
+.adv-toggle {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 0;
+}
+.adv-toggle:hover { color: var(--blue); }
+.adv-panel {
+  display: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.adv-panel.open { display: grid; }
+.adv-field label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.adv-field input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  outline: none;
+}
+.adv-field input:focus { border-color: var(--blue); }
+.adv-field input::placeholder { color: var(--text3); }
+
+.quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.quick-pick {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quick-pick:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── LOADING ── */
+.loading-panel {
+  display: none;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.loading-panel.active { display: block; }
+.loading-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--text); font-family: var(--mono); font-size: 13px; }
+.loading-steps { margin-top: 16px; }
+.loading-step {
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 0;
+  transition: color 0.3s;
+}
+.loading-step.active { color: var(--blue); }
+.loading-step.done { color: var(--green); }
+
+/* ── ERROR ── */
+.error-panel {
+  display: none;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.error-panel.active { display: block; }
+.error-card {
+  background: rgba(231,76,60,0.08);
+  border: 1px solid rgba(231,76,60,0.3);
+  border-radius: 12px;
+  padding: 24px;
+  color: var(--red);
+}
+.error-title { font-family: var(--display); font-weight: 700; margin-bottom: 8px; }
+.error-msg { font-size: 13px; color: var(--text2); }
+
+/* ── BANK WARNING ── */
+.bank-panel {
+  display: none;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.bank-panel.active { display: block; }
+.bank-card {
+  background: rgba(232,184,75,0.06);
+  border: 1px solid rgba(232,184,75,0.25);
+  border-radius: 12px;
+  padding: 28px;
+}
+.bank-title { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.bank-msg { color: var(--text2); font-size: 13px; line-height: 1.7; margin-bottom: 20px; }
+.bank-ratios { display: flex; gap: 20px; flex-wrap: wrap; }
+.bank-ratio { text-align: center; }
+.bank-ratio-val { font-family: var(--mono); font-size: 20px; color: var(--text); font-weight: 500; }
+.bank-ratio-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* ── RESULTS ── */
+.results {
+  display: none;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  animation: fadeUp 0.4s ease both;
+}
+.results.active { display: block; }
+
+/* ── SECTION HEADERS ── */
+.section {
+  margin-bottom: 28px;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── COMPANY OVERVIEW ── */
+.overview-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.overview-left {}
+.company-name {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+.company-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.company-meta span { display: flex; align-items: center; gap: 4px; }
+.sector-badge {
+  display: inline-block;
+  background: rgba(59,158,255,0.1);
+  border: 1px solid rgba(59,158,255,0.2);
+  color: var(--blue);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-family: var(--mono);
+  margin-top: 8px;
+}
+.overview-price {
+  text-align: right;
+}
+.price-label { font-family: var(--mono); font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.price-val {
+  font-family: var(--mono);
+  font-size: 32px;
+  color: var(--gold);
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+.price-sub { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-top: 2px; }
+.overview-ratios {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.ratio-item {}
+.ratio-val { font-family: var(--mono); font-size: 18px; color: var(--text); font-weight: 500; }
+.ratio-label { font-size: 11px; color: var(--text2); }
+
+/* ── VERDICT ── */
+.verdict-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.verdict-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.verdict-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.verdict-card.undervalued::before { background: var(--green); }
+.verdict-card.overvalued::before  { background: var(--red); }
+.verdict-card.fairly::before      { background: var(--orange); }
+.verdict-card.base-case { border-color: var(--border2); }
+.verdict-scenario {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.verdict-growth {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 12px;
+}
+.verdict-iv {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: -1px;
+}
+.verdict-cmp { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-top: 2px; }
+.verdict-upside {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+.verdict-upside.up { color: var(--green); }
+.verdict-upside.down { color: var(--red); }
+.verdict-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  margin-top: 8px;
+  letter-spacing: 0.5px;
+}
+.verdict-badge.undervalued { background: rgba(46,204,138,0.12); color: var(--green); }
+.verdict-badge.overvalued  { background: rgba(231,76,60,0.12);  color: var(--red); }
+.verdict-badge.fairly      { background: rgba(243,156,18,0.12); color: var(--orange); }
+
+/* ── WACC TABLE ── */
+.wacc-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.wacc-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 1fr;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.wacc-row:last-child { border-bottom: none; }
+.wacc-row.header { background: rgba(255,255,255,0.02); }
+.wacc-row.total {
+  background: rgba(59,158,255,0.05);
+  border-top: 1px solid var(--border2);
+}
+.wacc-param { color: var(--text); font-size: 13px; }
+.wacc-val { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 500; }
+.wacc-val.highlight { color: var(--blue); font-size: 16px; }
+.wacc-source { font-size: 11px; color: var(--text2); font-family: var(--mono); }
+.wacc-col-header { font-family: var(--mono); font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── FCF TABLE ── */
+.data-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  width: 100%;
+}
+.data-table table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  background: rgba(255,255,255,0.02);
+  padding: 10px 16px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table th:first-child { text-align: left; }
+.data-table td {
+  padding: 10px 16px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(26,58,92,0.4);
+  white-space: nowrap;
+}
+.data-table td:first-child { text-align: left; color: var(--text); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(59,158,255,0.04); }
+.data-table td.highlight { color: var(--gold); font-weight: 500; }
+.data-table td.green { color: var(--green); }
+.data-table td.red { color: var(--red); }
+.data-table td.normalized { color: var(--orange); }
+.data-table .row-label { font-size: 10px; color: var(--text3); display: block; }
+
+/* ── SCENARIO TABS ── */
+.scenario-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.scenario-tab {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.scenario-tab.active { background: var(--blue-dim); border-color: var(--blue); color: var(--text); }
+.scenario-tab:hover:not(.active) { border-color: var(--border2); color: var(--text2); }
+
+/* ── PROJECTION TABLE ── */
+.proj-tables { display: none; }
+.proj-tables.active { display: block; }
+
+/* ── TERMINAL VALUE ── */
+.tv-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.tv-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+.tv-label { font-family: var(--mono); font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.tv-val { font-family: var(--mono); font-size: 20px; color: var(--text); font-weight: 500; }
+.tv-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.tv-warning-badge {
+  display: inline-block;
+  background: rgba(243,156,18,0.1);
+  border: 1px solid rgba(243,156,18,0.3);
+  color: var(--orange);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-family: var(--mono);
+  margin-top: 6px;
+}
+
+/* ── VALUE BRIDGE ── */
+.bridge-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+.bridge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(26,58,92,0.4);
+}
+.bridge-row:last-child { border-bottom: none; border-top: 1px solid var(--border2); padding-top: 14px; margin-top: 6px; }
+.bridge-label { color: var(--text); font-size: 13px; }
+.bridge-val { font-family: var(--mono); font-size: 14px; color: var(--text); }
+.bridge-val.total { font-size: 18px; color: var(--gold); font-weight: 500; }
+.bridge-val.negative { color: var(--red); }
+.bridge-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.bridge-tab {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bridge-tab.active { background: var(--blue-dim); border-color: var(--blue); color: var(--text); }
+
+/* ── SENSITIVITY ── */
+.sensitivity-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  overflow-x: auto;
+}
+.sensitivity-wrap h4 {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.sens-table { border-collapse: collapse; width: 100%; }
+.sens-table th, .sens-table td {
+  padding: 10px 16px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+.sens-table th { color: var(--text2); background: rgba(255,255,255,0.02); font-size: 10px; }
+.sens-table td { color: var(--text); }
+.sens-table td.high { background: rgba(46,204,138,0.1); color: var(--green); }
+.sens-table td.mid  { background: rgba(59,158,255,0.08); color: var(--blue); }
+.sens-table td.low  { background: rgba(231,76,60,0.08);  color: var(--red); }
+.sens-table td.base { border: 1px solid var(--blue); }
+.sens-row-label { color: var(--text) !important; text-align: left !important; }
+
+/* ── WARNINGS SECTION ── */
+.warnings-list { display: flex; flex-direction: column; gap: 10px; }
+.warning-item {
+  display: flex;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  border-left: 3px solid var(--border);
+}
+.warning-item.info     { border-left-color: var(--blue); }
+.warning-item.caution  { border-left-color: var(--orange); }
+.warning-item.important{ border-left-color: var(--red); }
+.warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.warning-content {}
+.warning-title { font-family: var(--display); font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.warning-item.info     .warning-title { color: var(--blue); }
+.warning-item.caution  .warning-title { color: var(--orange); }
+.warning-item.important .warning-title { color: var(--red); }
+.warning-msg { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* ── ASSUMPTIONS TABLE ── */
+.assumptions-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.assumption-row {
+  display: grid;
+  grid-template-columns: 200px 120px 1fr 80px;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(26,58,92,0.4);
+  align-items: center;
+}
+.assumption-row:last-child { border-bottom: none; }
+.assumption-row.header { background: rgba(255,255,255,0.02); }
+.assumption-param { font-size: 12px; color: var(--text2); }
+.assumption-val { font-family: var(--mono); font-size: 12px; color: var(--gold); }
+.assumption-source { font-size: 11px; color: var(--text2); }
+.assumption-type {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.type-hardcoded    { background: rgba(231,76,60,0.1);  color: var(--red); }
+.type-calculated   { background: rgba(46,204,138,0.1); color: var(--green); }
+.type-sector_table { background: rgba(59,158,255,0.1); color: var(--blue); }
+.type-model_assumption { background: rgba(243,156,18,0.1); color: var(--orange); }
+.type-data_source  { background: rgba(136,153,170,0.1); color: var(--text2); }
+
+/* ── DISCLAIMER ── */
+.disclaimer {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.8;
+}
+.disclaimer strong { color: var(--text2); }
+
+/* ── FCF BAR CHART ── */
+.chart-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.chart-title { font-family: var(--mono); font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+.chart-legend { display: flex; gap: 16px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+.bars-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 180px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+  position: relative;
+}
+.bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: opacity 0.2s;
+  cursor: default;
+  min-height: 4px;
+}
+.bar:hover { opacity: 0.8; }
+.bar.historical { background: var(--blue-dim); border: 1px solid var(--blue); border-bottom: none; }
+.bar.projected-bear { background: rgba(231,76,60,0.3); border: 1px solid var(--red); border-bottom: none; }
+.bar.projected-base { background: rgba(59,158,255,0.3); border: 1px solid var(--blue); border-bottom: none; }
+.bar.projected-bull { background: rgba(46,204,138,0.3); border: 1px solid var(--green); border-bottom: none; }
+.bar-tooltip {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.bar:hover .bar-tooltip { opacity: 1; }
+.bar-labels { display: flex; gap: 6px; margin-top: 6px; }
+.bar-label { flex: 1; text-align: center; font-family: var(--mono); font-size: 9px; color: var(--text2); }
+
+
+/* ── AUTOCOMPLETE ── */
+.search-wrap { position: relative; flex: 1; }
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 200;
+  display: none;
+}
+.autocomplete-dropdown.open { display: block; }
+.ac-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: rgba(59,158,255,0.08); }
+.ac-ticker { font-family: var(--mono); font-size: 13px; color: var(--blue); }
+.ac-name { font-size: 12px; color: var(--text3); }
+
+/* ── WEIGHTED IV CARD ── */
+.weighted-card {
+  background: linear-gradient(135deg, rgba(59,158,255,0.08), rgba(232,184,75,0.06));
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.weighted-left {}
+.weighted-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.weighted-iv { font-family: var(--mono); font-size: 42px; color: var(--gold); font-weight: 500; letter-spacing: -2px; }
+.weighted-formula { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-top: 6px; }
+.weighted-right { text-align: right; }
+.weighted-upside { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+.weighted-verdict { display: inline-block; padding: 5px 16px; border-radius: 20px; font-family: var(--mono); font-size: 12px; margin-top: 8px; }
+
+/* ── COLLAPSIBLE ── */
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 14px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.2s;
+  user-select: none;
+}
+.collapsible-header:hover { border-color: var(--border2); }
+.collapsible-header.open { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
+.collapsible-title { font-family: var(--mono); font-size: 11px; color: var(--text); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+.collapsible-badge { background: rgba(59,158,255,0.1); color: var(--blue); border: 1px solid rgba(59,158,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 10px; }
+.collapsible-arrow { font-size: 12px; color: var(--text3); transition: transform 0.2s; }
+.collapsible-header.open .collapsible-arrow { transform: rotate(180deg); }
+.collapsible-body {
+  display: none;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+.collapsible-body.open { display: block; }
+
+
+/* ── VALUATION METHOD CARDS ── */
+.val-method-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.val-method-header {
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.val-method-title {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.val-method-subtitle {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 3px;
+}
+.val-method-iv {
+  text-align: right;
+}
+.val-method-iv-val {
+  font-family: var(--mono);
+  font-size: 28px;
+  color: var(--gold);
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+.val-method-upside { font-family: var(--mono); font-size: 13px; font-weight: 500; margin-top: 2px; }
+.val-method-upside.up { color: var(--green); }
+.val-method-upside.down { color: var(--red); }
+.val-na {
+  padding: 20px 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.val-na-badge {
+  background: rgba(136,153,170,0.1);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.val-method-body {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.val-stat { }
+.val-stat-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.val-stat-val { font-family: var(--mono); font-size: 16px; color: var(--text); font-weight: 500; }
+.val-stat-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* ── COMPOSITE BLOCK ── */
+.composite-block {
+  background: linear-gradient(135deg, rgba(59,158,255,0.06) 0%, rgba(232,184,75,0.04) 50%, rgba(46,204,138,0.04) 100%);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.composite-header {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.composite-title {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+.composite-source {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+.composite-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.composite-table th {
+  padding: 10px 20px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.composite-table th:first-child { text-align: left; }
+.composite-table td {
+  padding: 12px 20px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(26,58,92,0.3);
+}
+.composite-table td:first-child { text-align: left; color: var(--text2); font-size: 13px; }
+.composite-table tr:last-child td { border-bottom: none; }
+.composite-table tr.na-row td { color: var(--text3); font-size: 11px; }
+.composite-table tr.total-row td {
+  border-top: 2px solid var(--border2);
+  background: rgba(232,184,75,0.05);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold);
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.composite-table tr.total-row td:first-child { color: var(--text); }
+.weight-bar-wrap { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.weight-bar { height: 6px; border-radius: 3px; background: var(--blue-dim); border: 1px solid var(--blue); }
+.composite-footer {
+  padding: 20px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.composite-iv-block { }
+.composite-iv-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.composite-iv-val { font-family: var(--mono); font-size: 44px; color: var(--gold); font-weight: 500; letter-spacing: -2px; line-height: 1; }
+.composite-range { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 4px; }
+.composite-verdict-block { text-align: right; }
+.composite-upside { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+.composite-badge { display: inline-block; padding: 6px 20px; border-radius: 20px; font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 8px; letter-spacing: 0.5px; }
+.composite-note { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 6px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .verdict-grid { grid-template-columns: 1fr; }
+  .tv-grid { grid-template-columns: repeat(2, 1fr); }
+  .assumption-row { grid-template-columns: 1fr 1fr; }
+  .assumption-row .assumption-source, .assumption-row .assumption-type { display: none; }
+  .wacc-row { grid-template-columns: 1fr 1fr; }
+  .wacc-row .wacc-source { display: none; }
+  .adv-panel.open { grid-template-columns: 1fr; }
+  .search-headline { font-size: 26px; }
+}
+
+/* ── TIMESTAMP BAR ── */
+.timestamp-bar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ts-item { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.ts-item span { color: var(--text2); }
+.new-search-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.new-search-btn:hover { border-color: var(--blue); color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-name">Smart<span>Valuation</span></div>
+    <div class="logo-tag">Fundamental Stock Analysis · India</div>
+  </div>
+  <div class="header-right">Prateek Srivastava</div>
+</header>
+
+<!-- SEARCH PANEL -->
+<div class="search-panel" id="searchPanel">
+  <div class="search-headline">Know What a Stock<br>Is <span>Really Worth</span></div>
+  <div class="search-sub">FCFF-based DCF valuation using real Screener.in data · Indian listed companies</div>
+
+  <div class="search-box">
+    <div class="search-wrap">
+      <input class="search-input" id="tickerInput" type="text"
+             placeholder="Enter NSE ticker or company name e.g. Infosys, TCS, Reliance"
+             autocomplete="off" spellcheck="false">
+      <div class="autocomplete-dropdown" id="acDropdown"></div>
+    </div>
+    <button class="search-btn" id="analyseBtn" onclick="analyse()">Analyse →</button>
+  </div>
+
+  <button class="adv-toggle" onclick="toggleAdv()">⚙ Advanced Settings <span id="advArrow">▾</span></button>
+  <div class="adv-panel" id="advPanel">
+    <div class="adv-field">
+      <label>Risk-Free Rate % <span style="color:var(--text3)">(default 6.72)</span></label>
+      <input type="number" id="rfrInput" placeholder="6.72" step="0.01" min="0" max="20">
+    </div>
+    <div class="adv-field">
+      <label>Terminal Growth Rate % <span style="color:var(--text3)">(default 5.0)</span></label>
+      <input type="number" id="tgrInput" placeholder="5.0" step="0.1" min="0" max="6.5">
+    </div>
+    <div class="adv-field">
+      <label>Override WACC % <span style="color:var(--text3)">(leave blank = auto)</span></label>
+      <input type="number" id="waccInput" placeholder="Auto-calculated" step="0.1" min="0" max="30">
+    </div>
+  </div>
+
+  <div class="quick-picks">
+    <span style="font-family:var(--mono);font-size:10px;color:var(--text3);align-self:center;">QUICK:</span>
+    <div class="quick-pick" onclick="quickPick('INFY')">INFY</div>
+    <div class="quick-pick" onclick="quickPick('TCS')">TCS</div>
+    <div class="quick-pick" onclick="quickPick('RELIANCE')">RELIANCE</div>
+    <div class="quick-pick" onclick="quickPick('HINDUNILVR')">HINDUNILVR</div>
+    <div class="quick-pick" onclick="quickPick('LT')">L&T</div>
+    <div class="quick-pick" onclick="quickPick('TATASTEEL')">TATASTEEL</div>
+    <div class="quick-pick" onclick="quickPick('WIPRO')">WIPRO</div>
+    <div class="quick-pick" onclick="quickPick('SUNPHARMA')">SUNPHARMA</div>
+    <div class="quick-pick" onclick="quickPick('MARUTI')">MARUTI</div>
+    <div class="quick-pick" onclick="quickPick('TITAN')">TITAN</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-panel" id="loadingPanel">
+  <div class="loading-card">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Fetching data from Screener.in...</div>
+    <div class="loading-steps">
+      <div class="loading-step" id="step1">① Scraping financial statements</div>
+      <div class="loading-step" id="step2">② Calculating FCFF (5 years)</div>
+      <div class="loading-step" id="step3">③ Computing WACC components</div>
+      <div class="loading-step" id="step4">④ Running DCF — Bear / Base / Bull</div>
+      <div class="loading-step" id="step5">⑤ Building sensitivity table</div>
+    </div>
+  </div>
+</div>
+
+<!-- ERROR -->
+<div class="error-panel" id="errorPanel">
+  <div class="error-card">
+    <div class="error-title">⚠ Analysis Failed</div>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</div>
+
+<!-- BANK WARNING -->
+<div class="bank-panel" id="bankPanel">
+  <div class="bank-card">
+    <div class="bank-title">⚠ DCF Not Applicable — Banking / NBFC</div>
+    <div class="bank-msg" id="bankMsg"></div>
+    <div class="bank-ratios" id="bankRatios"></div>
+    <br>
+    <button class="new-search-btn" onclick="reset()">← New Analysis</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="resultsPanel">
+
+  <!-- TIMESTAMP BAR -->
+  <div class="timestamp-bar">
+    <div class="ts-item">Company: <span id="tsCompany">—</span></div>
+    <div class="ts-item">Ticker: <span id="tsTicker">—</span></div>
+    <div class="ts-item">Data: <span>Screener.in Consolidated</span></div>
+    <div class="ts-item">Generated: <span id="tsTime">—</span></div>
+    <button class="new-search-btn" onclick="reset()">← New Analysis</button>
+  </div>
+
+  <!-- 1. COMPANY OVERVIEW -->
+  <div class="section">
+    <div class="section-label">Company Overview</div>
+    <div class="overview-card">
+      <div class="overview-left">
+        <div class="company-name" id="ovCompanyName">—</div>
+        <div class="company-meta">
+          <span id="ovTicker">—</span>
+          <span id="ovMktCap">—</span>
+          <span id="ovShares">—</span>
+        </div>
+        <div class="sector-badge" id="ovSector">—</div>
+        <div class="overview-ratios">
+          <div class="ratio-item"><div class="ratio-val" id="ovROE">—</div><div class="ratio-label">ROE %</div></div>
+          <div class="ratio-item"><div class="ratio-val" id="ovROCE">—</div><div class="ratio-label">ROCE %</div></div>
+          <div class="ratio-item"><div class="ratio-val" id="ovPE">—</div><div class="ratio-label">P/E</div></div>
+          <div class="ratio-item"><div class="ratio-val" id="ovTax">—</div><div class="ratio-label">Eff. Tax %</div></div>
+          <div class="ratio-item"><div class="ratio-val" id="ovDebt">—</div><div class="ratio-label">Gross Debt (Cr)</div></div>
+          <div class="ratio-item"><div class="ratio-val" id="ovBV">—</div><div class="ratio-label">Book Value</div></div>
+        </div>
+      </div>
+      <div class="overview-price">
+        <div class="price-label">Current Market Price</div>
+        <div class="price-val" id="ovPrice">—</div>
+        <div class="price-sub" id="ovPriceSub">NSE · Indian Rupees</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. VERDICT -->
+  <div class="section">
+    <div class="section-label">Intrinsic Value vs CMP</div>
+    <div class="verdict-grid" id="verdictGrid"></div>
+  </div>
+
+  <!-- 2b. WEIGHTED DCF -->
+  <div class="section">
+    <div class="section-label">Weighted DCF Intrinsic Value</div>
+    <div class="val-method-section" id="weightedDCFSection">
+      <div class="val-method-header">
+        <div>
+          <div class="val-method-title">Discounted Cash Flow — Probability Weighted</div>
+          <div class="val-method-subtitle">Bear 25% × Base 50% × Bull 25% — Standard hedge fund scenario weighting</div>
+        </div>
+        <div class="val-method-iv">
+          <div class="val-method-iv-val" id="wdcfIV">—</div>
+          <div class="val-method-upside" id="wdcfUpside">—</div>
+        </div>
+      </div>
+      <div class="val-method-body" id="wdcfBody" style="grid-template-columns: repeat(3,1fr);"></div>
+    </div>
+  </div>
+
+  <!-- 2c. P/E VALUATION -->
+  <div class="section">
+    <div class="section-label">P/E Based Valuation</div>
+    <div class="val-method-section" id="peSection">
+      <div class="val-method-header">
+        <div>
+          <div class="val-method-title">Price-to-Earnings Valuation</div>
+          <div class="val-method-subtitle" id="peSubtitle">Normalized EPS × Sector Median P/E (Damodaran)</div>
+        </div>
+        <div class="val-method-iv">
+          <div class="val-method-iv-val" id="peIV">—</div>
+          <div class="val-method-upside" id="peUpside">—</div>
+        </div>
+      </div>
+      <div id="peBody"></div>
+    </div>
+  </div>
+
+  <!-- 2d. EV/EBITDA VALUATION -->
+  <div class="section">
+    <div class="section-label">EV/EBITDA Based Valuation</div>
+    <div class="val-method-section" id="evSection">
+      <div class="val-method-header">
+        <div>
+          <div class="val-method-title">Enterprise Value / EBITDA Valuation</div>
+          <div class="val-method-subtitle" id="evSubtitle">EBITDA × Sector EV/EBITDA Multiple − Net Debt ÷ Shares</div>
+        </div>
+        <div class="val-method-iv">
+          <div class="val-method-iv-val" id="evIV">—</div>
+          <div class="val-method-upside" id="evUpside">—</div>
+        </div>
+      </div>
+      <div id="evBody"></div>
+    </div>
+  </div>
+
+  <!-- 2e. P/B VALUATION -->
+  <div class="section">
+    <div class="section-label">Price-to-Book Valuation</div>
+    <div class="val-method-section" id="pbSection">
+      <div class="val-method-header">
+        <div>
+          <div class="val-method-title">Price-to-Book Valuation</div>
+          <div class="val-method-subtitle" id="pbSubtitle">Book Value per Share × Sector Median P/B (Damodaran)</div>
+        </div>
+        <div class="val-method-iv">
+          <div class="val-method-iv-val" id="pbIV">—</div>
+          <div class="val-method-upside" id="pbUpside">—</div>
+        </div>
+      </div>
+      <div id="pbBody"></div>
+    </div>
+  </div>
+
+  <!-- 2f. COMPOSITE VALUATION SCORE -->
+  <div class="section">
+    <div class="section-label">Composite Valuation Score</div>
+    <div class="composite-block" id="compositeBlock"></div>
+  </div>
+
+  <!-- 3. FCF CHART + TABLE -->
+  <div class="section">
+    <div class="section-label">Historical Free Cash Flow to Firm</div>
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <div class="chart-title">FCFF · ₹ Crores · Last 5–6 Years</div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue-dim);border:1px solid var(--blue)"></div>Historical</div>
+        </div>
+      </div>
+      <div class="bars-area" id="barsArea"></div>
+      <div class="bar-labels" id="barLabels"></div>
+    </div>
+    <br>
+    <div class="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Revenue (Cr)</th>
+            <th>EBIT (Cr)</th>
+            <th>NOPAT (Cr)</th>
+            <th>D&A (Cr)</th>
+            <th>CapEx (Cr)</th>
+            <th>FCFF (Cr)</th>
+          </tr>
+        </thead>
+        <tbody id="fcffTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. WACC -->
+  <div class="section">
+    <div class="section-label">WACC Build-Up</div>
+    <div class="wacc-table" id="waccTable"></div>
+  </div>
+
+  <!-- 5. PROJECTED FCF BY SCENARIO -->
+  <div class="section">
+    <div class="section-label">Projected Free Cash Flows</div>
+    <div class="scenario-tabs">
+      <div class="scenario-tab active" onclick="showProj('bear',this)">Bear Case</div>
+      <div class="scenario-tab" onclick="showProj('base',this)">Base Case</div>
+      <div class="scenario-tab" onclick="showProj('bull',this)">Bull Case</div>
+    </div>
+    <div id="projBear" class="proj-tables active">
+      <div class="data-table"><table><thead><tr><th>Year</th><th>Growth Rate</th><th>Projected FCFF (Cr)</th><th>PV Factor</th><th>PV of FCFF (Cr)</th></tr></thead><tbody id="projBearBody"></tbody></table></div>
+    </div>
+    <div id="projBase" class="proj-tables">
+      <div class="data-table"><table><thead><tr><th>Year</th><th>Growth Rate</th><th>Projected FCFF (Cr)</th><th>PV Factor</th><th>PV of FCFF (Cr)</th></tr></thead><tbody id="projBaseBody"></tbody></table></div>
+    </div>
+    <div id="projBull" class="proj-tables">
+      <div class="data-table"><table><thead><tr><th>Year</th><th>Growth Rate</th><th>Projected FCFF (Cr)</th><th>PV Factor</th><th>PV of FCFF (Cr)</th></tr></thead><tbody id="projBullBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- 6. TERMINAL VALUE -->
+  <div class="section">
+    <div class="section-label">Terminal Value</div>
+    <div class="scenario-tabs">
+      <div class="scenario-tab active" onclick="showTV('bear',this)">Bear Case</div>
+      <div class="scenario-tab" onclick="showTV('base',this)">Base Case</div>
+      <div class="scenario-tab" onclick="showTV('bull',this)">Bull Case</div>
+    </div>
+    <div class="tv-grid" id="tvGrid"></div>
+  </div>
+
+  <!-- 7. VALUE BRIDGE -->
+  <div class="section">
+    <div class="section-label">Equity Value Bridge</div>
+    <div class="bridge-tabs">
+      <div class="bridge-tab active" onclick="showBridge('bear',this)">Bear Case</div>
+      <div class="bridge-tab" onclick="showBridge('base',this)">Base Case</div>
+      <div class="bridge-tab" onclick="showBridge('bull',this)">Bull Case</div>
+    </div>
+    <div class="bridge-card" id="bridgeCard"></div>
+  </div>
+
+  <!-- 8. SENSITIVITY -->
+  <div class="section">
+    <div class="section-label">Sensitivity Analysis — IV/Share (₹)</div>
+    <div class="sensitivity-wrap">
+      <h4>Base Case · WACC vs Terminal Growth Rate · All values in ₹/share</h4>
+      <div id="sensTable"></div>
+    </div>
+  </div>
+
+  <!-- 9. WARNINGS -->
+  <div class="section">
+    <div class="collapsible-header" onclick="toggleCollapsible('warningsBody',this)">
+      <div class="collapsible-title">Warnings & Model Limitations <span class="collapsible-badge" id="warnBadge">0</span></div>
+      <span class="collapsible-arrow">▾</span>
+    </div>
+    <div class="collapsible-body" id="warningsBody">
+      <div class="warnings-list" id="warningsList" style="padding:16px;gap:10px;display:flex;flex-direction:column;"></div>
+    </div>
+  </div>
+
+  <!-- 10. ASSUMPTIONS -->
+  <div class="section">
+    <div class="collapsible-header" onclick="toggleCollapsible('assumptionsBody',this)">
+      <div class="collapsible-title">All Assumptions & Sources <span class="collapsible-badge" id="assumBadge">0</span></div>
+      <span class="collapsible-arrow">▾</span>
+    </div>
+    <div class="collapsible-body" id="assumptionsBody">
+      <div class="assumptions-table" id="assumptionsTable">
+        <div class="assumption-row header">
+          <div class="assumption-param wacc-col-header">Parameter</div>
+          <div class="assumption-val wacc-col-header">Value Used</div>
+          <div class="assumption-source wacc-col-header">Source / Method</div>
+          <div class="assumption-type wacc-col-header">Type</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. DISCLAIMER -->
+  <div class="section">
+    <div class="collapsible-header" onclick="toggleCollapsible('disclaimerBody',this)">
+      <div class="collapsible-title">⚖ Legal Disclaimer <span class="collapsible-badge">Important</span></div>
+      <span class="collapsible-arrow">▾</span>
+    </div>
+    <div class="collapsible-body" id="disclaimerBody">
+      <div class="disclaimer" style="border-radius:0 0 12px 12px;border-top:none">
+        <strong>For educational and research purposes only.</strong> SmartValuation is a multi-method valuation tool built for learning fundamental analysis. It does not constitute financial advice, investment advice, or a recommendation to buy or sell any security.
+        <br><br>
+        All valuations are based on publicly available data from Screener.in and involve significant assumptions, approximations, and simplifications. Intrinsic value estimates are highly sensitive to input assumptions and should not be treated as precise or definitive.
+        <br><br>
+        <strong>Limitations:</strong> This model excludes qualitative factors (management quality, competitive moats, regulatory risk, ESG). DCF excludes working capital changes. Sector multiples from Damodaran are updated annually and may not reflect current market conditions. Composite weights are based on sector classification, not company-specific analysis.
+        <br><br>
+        Past cash flow growth does not guarantee future performance. Always conduct your own due diligence and consult a SEBI-registered investment advisor before making investment decisions.
+        <br><br>
+        <strong>Data freshness:</strong> Financial data is fetched live from Screener.in at time of analysis. Risk-Free Rate, ERP, and Damodaran multiples are updated manually.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /results -->
+
+<script>
+const API = 'https://smartvaluation-backend.onrender.com';
+let acTimer = null;
+
+// ── AUTOCOMPLETE ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('tickerInput');
+  const dropdown = document.getElementById('acDropdown');
+
+  input.addEventListener('input', () => {
+    clearTimeout(acTimer);
+    const q = input.value.trim();
+    if (q.length < 2) { dropdown.classList.remove('open'); return; }
+    acTimer = setTimeout(async () => {
+      try {
+        const r = await fetch(API + '/api/search?q=' + encodeURIComponent(q));
+        const results = await r.json();
+        if (!results.length) { dropdown.classList.remove('open'); return; }
+        dropdown.innerHTML = results.map(s =>
+          `<div class="ac-item" onclick="selectStock('${s.ticker}','${s.name.replace(/'/g,"\'")}')">
+            <span class="ac-ticker">${s.ticker}</span>
+            <span class="ac-name">${s.name}</span>
+          </div>`
+        ).join('');
+        dropdown.classList.add('open');
+      } catch(e) { dropdown.classList.remove('open'); }
+    }, 250);
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) dropdown.classList.remove('open');
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { dropdown.classList.remove('open'); analyse(); }
+    if (e.key === 'Escape') dropdown.classList.remove('open');
+  });
+});
+
+function selectStock(ticker, name) {
+  document.getElementById('tickerInput').value = ticker;
+  document.getElementById('acDropdown').classList.remove('open');
+  analyse();
+}
+
+// ── COLLAPSIBLE ───────────────────────────────────────────────────────────────
+function toggleCollapsible(bodyId, header) {
+  const body = document.getElementById(bodyId);
+  body.classList.toggle('open');
+  header.classList.toggle('open');
+}
+let DATA = null;
+let currentProjTab = 'bear';
+let currentTVTab   = 'bear';
+let currentBridgeTab = 'bear';
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const fmt   = n => n == null ? '—' : Number(n).toLocaleString('en-IN', {maximumFractionDigits:2});
+const fmtCr = n => n == null ? '—' : '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:0}) + ' Cr';
+const fmtPct= n => n == null ? '—' : Number(n).toFixed(2) + '%';
+const fmtIV = n => n == null ? '—' : '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:2});
+
+function show(id)  { document.getElementById(id).classList.add('active'); }
+function hide(id)  { document.getElementById(id).classList.remove('active'); }
+function hideAll() {
+  ['searchPanel','loadingPanel','errorPanel','bankPanel','resultsPanel']
+    .forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('searchPanel').style.display='none';
+}
+function reset() {
+  document.getElementById('searchPanel').style.display='';
+  document.getElementById('searchPanel').classList.remove('active');
+  ['loadingPanel','errorPanel','bankPanel','resultsPanel'].forEach(hide);
+  document.getElementById('tickerInput').value = '';
+  document.getElementById('analyseBtn').disabled = false;
+}
+
+function toggleAdv() {
+  const p = document.getElementById('advPanel');
+  const a = document.getElementById('advArrow');
+  p.classList.toggle('open');
+  a.textContent = p.classList.contains('open') ? '▴' : '▾';
+}
+
+function quickPick(ticker) {
+  document.getElementById('tickerInput').value = ticker;
+  document.getElementById('acDropdown').classList.remove('open');
+  analyse();
+}
+
+document.getElementById('tickerInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') analyse();
+});
+
+// ── ANIMATE LOADING STEPS ────────────────────────────────────────────────────
+function animateSteps() {
+  const steps = ['step1','step2','step3','step4','step5'];
+  let i = 0;
+  steps.forEach(s => document.getElementById(s).className = 'loading-step');
+  const interval = setInterval(() => {
+    if (i > 0) document.getElementById(steps[i-1]).className = 'loading-step done';
+    if (i < steps.length) {
+      document.getElementById(steps[i]).className = 'loading-step active';
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 800);
+  return interval;
+}
+
+// ── MAIN ANALYSE ─────────────────────────────────────────────────────────────
+async function analyse() {
+  const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+  if (!ticker) { document.getElementById('tickerInput').focus(); return; }
+
+  const rfr  = document.getElementById('rfrInput').value;
+  const tgr  = document.getElementById('tgrInput').value  || '5.0';
+  const wacc = document.getElementById('waccInput').value;
+
+  hideAll();
+  document.getElementById('loadingPanel').classList.add('active');
+  document.getElementById('analyseBtn').disabled = true;
+
+  const stepInterval = animateSteps();
+
+  try {
+    const resp = await fetch(API + '/api/analyse', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        ticker,
+        tgr: parseFloat(tgr),
+        rfr:  rfr  ? parseFloat(rfr)  : undefined,
+        wacc: wacc ? parseFloat(wacc) : undefined,
+      })
+    });
+    clearInterval(stepInterval);
+    const data = await resp.json();
+    document.getElementById('analyseBtn').disabled = false;
+    hide('loadingPanel');
+
+    if (!resp.ok || data.error) {
+      document.getElementById('errorMsg').textContent = data.error || 'Unknown error';
+      show('errorPanel');
+      document.getElementById('searchPanel').style.display='';
+      return;
+    }
+
+    if (data.is_bank) {
+      renderBank(data);
+      show('bankPanel');
+      return;
+    }
+
+    DATA = data;
+    renderResults(data);
+    show('resultsPanel');
+    window.scrollTo({top:0, behavior:'smooth'});
+
+  } catch(e) {
+    clearInterval(stepInterval);
+    document.getElementById('analyseBtn').disabled = false;
+    hide('loadingPanel');
+    document.getElementById('errorMsg').textContent = 'Could not connect to backend. Please try again in a moment (server may be waking up).';
+    show('errorPanel');
+    document.getElementById('searchPanel').style.display='';
+  }
+}
+
+// ── RENDER BANK WARNING ───────────────────────────────────────────────────────
+function renderBank(d) {
+  document.getElementById('bankMsg').textContent = d.bank_warning;
+  document.getElementById('bankRatios').innerHTML = `
+    <div class="bank-ratio"><div class="bank-ratio-val">₹${fmt(d.current_price)}</div><div class="bank-ratio-label">CMP</div></div>
+    <div class="bank-ratio"><div class="bank-ratio-val">${fmtCr(d.market_cap_cr)}</div><div class="bank-ratio-label">Market Cap</div></div>
+    <div class="bank-ratio"><div class="bank-ratio-val">${d.roe || '—'}%</div><div class="bank-ratio-label">ROE</div></div>
+    <div class="bank-ratio"><div class="bank-ratio-val">${d.pe_ratio || '—'}x</div><div class="bank-ratio-label">P/E</div></div>
+    <div class="bank-ratio"><div class="bank-ratio-val">₹${d.book_value || '—'}</div><div class="bank-ratio-label">Book Value</div></div>
+  `;
+}
+
+// ── RENDER ALL RESULTS ────────────────────────────────────────────────────────
+function renderResults(d) {
+  // Timestamp bar
+  document.getElementById('tsCompany').textContent = d.company_name;
+  document.getElementById('tsTicker').textContent  = d.ticker;
+  document.getElementById('tsTime').textContent    = d.timestamp;
+
+  renderOverview(d);
+  renderVerdicts(d);
+  renderWeightedIV(d);
+  renderPEValuation(d);
+  renderEVValuation(d);
+  renderPBValuation(d);
+  renderComposite(d);
+  renderFCFFChart(d.historical_fcff);
+  renderFCFFTable(d.historical_fcff);
+  renderWACC(d.wacc);
+  renderProjTables(d.dcf);
+  renderTV('bear');
+  renderBridge('bear');
+  renderSensitivity(d.sensitivity, d.current_price);
+  renderWarnings(d.warnings);
+  renderAssumptions(d.assumptions);
+}
+
+// ── WEIGHTED IV ──────────────────────────────────────────────────────────────
+// ── VALUATION METHODS ────────────────────────────────────────────────────────
+
+function upsideHtml(upside, cmp) {
+  if (upside == null) return '';
+  const cls  = upside >= 0 ? 'up' : 'down';
+  const sign = upside >= 0 ? '▲ +' : '▼ ';
+  return `<div class="val-method-upside ${cls}">${sign}${Math.abs(upside).toFixed(1)}% vs CMP ₹${fmt(cmp)}</div>`;
+}
+
+function verdictBadge(verdict) {
+  if (!verdict) return '';
+  const map = {
+    'UNDERVALUED':  ['rgba(46,204,138,0.12)','var(--green)','rgba(46,204,138,0.3)'],
+    'OVERVALUED':   ['rgba(231,76,60,0.12)','var(--red)','rgba(231,76,60,0.3)'],
+    'FAIRLY VALUED':['rgba(243,156,18,0.12)','var(--orange)','rgba(243,156,18,0.3)'],
+  };
+  const [bg, color, border] = map[verdict] || map['FAIRLY VALUED'];
+  return `<span style="display:inline-block;padding:3px 12px;border-radius:20px;background:${bg};color:${color};border:1px solid ${border};font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.5px;margin-top:4px">${verdict}</span>`;
+}
+
+function renderWeightedIV(d) {
+  const w = d.weighted_iv;
+  if (!w || !w.valid) {
+    document.getElementById('wdcfIV').textContent = 'N/A';
+    document.getElementById('wdcfUpside').innerHTML = `<span style="color:var(--text3);font-size:11px">${w ? w.reason : 'No data'}</span>`;
+    return;
+  }
+  document.getElementById('wdcfIV').textContent = fmtIV(w.iv);
+  document.getElementById('wdcfUpside').innerHTML = upsideHtml(w.upside, d.current_price) + verdictBadge(w.verdict);
+
+  const bear = d.dcf.scenarios.bear;
+  const base = d.dcf.scenarios.base;
+  const bull = d.dcf.scenarios.bull;
+  const wts  = w.weights;
+  const partial = w.partial ? `<div style="font-family:var(--mono);font-size:10px;color:var(--orange);margin-top:6px">⚠ ${w.reason}</div>` : '';
+
+  document.getElementById('wdcfBody').innerHTML = `
+    <div class="val-stat">
+      <div class="val-stat-label">Bear Case (${(wts.bear*100).toFixed(0)}%)</div>
+      <div class="val-stat-val" style="color:var(--red)">${fmtIV(bear.iv_per_share)}</div>
+      <div class="val-stat-sub">Growth: ${d.dcf.bear_growth}% · ${d.dcf.bear_growth_label||''}</div>
+    </div>
+    <div class="val-stat">
+      <div class="val-stat-label">Base Case (${(wts.base*100).toFixed(0)}%)</div>
+      <div class="val-stat-val" style="color:var(--blue)">${fmtIV(base.iv_per_share)}</div>
+      <div class="val-stat-sub">Growth: ${d.dcf.base_growth}% · ${d.dcf.base_growth_label||''}</div>
+    </div>
+    <div class="val-stat">
+      <div class="val-stat-label">Bull Case (${(wts.bull*100).toFixed(0)}%)</div>
+      <div class="val-stat-val" style="color:var(--green)">${fmtIV(bull.iv_per_share)}</div>
+      <div class="val-stat-sub">Growth: ${d.dcf.bull_growth}% · ${d.dcf.bull_growth_label||''}</div>
+    </div>
+    ${partial}`;
+}
+
+function renderPEValuation(d) {
+  const pe = d.pe_valuation;
+  const cmp = d.current_price;
+  if (!pe) return;
+
+  if (!pe.applicable) {
+    document.getElementById('peIV').textContent = 'N/A';
+    document.getElementById('peUpside').innerHTML = `<span style="color:var(--text3);font-size:11px;font-family:var(--mono)">${pe.na_reason}</span>`;
+    document.getElementById('peBody').innerHTML = `<div class="val-na"><span class="val-na-badge">NOT APPLICABLE</span>${pe.na_reason}</div>`;
+    return;
+  }
+
+  document.getElementById('peIV').textContent = fmtIV(pe.iv_per_share);
+  document.getElementById('peUpside').innerHTML = upsideHtml(pe.upside, cmp) + verdictBadge(pe.verdict);
+  document.getElementById('peSubtitle').textContent = `Normalized EPS × Sector P/E ${pe.sector_pe}x (Damodaran India)`;
+
+  document.getElementById('peBody').innerHTML = `
+    <div class="val-method-body">
+      <div class="val-stat">
+        <div class="val-stat-label">Normalized EPS</div>
+        <div class="val-stat-val">₹${fmt(pe.normalized_eps)}</div>
+        <div class="val-stat-sub">${pe.years_used}-yr avg net profit ÷ shares</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Sector Median P/E</div>
+        <div class="val-stat-val">${pe.sector_pe}x</div>
+        <div class="val-stat-sub">Damodaran India — ${d.sector}</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Avg Net Profit</div>
+        <div class="val-stat-val">${fmtCr(pe.avg_profit_cr)}</div>
+        <div class="val-stat-sub">Used for EPS normalization</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Intrinsic Value</div>
+        <div class="val-stat-val" style="color:var(--gold)">${fmtIV(pe.iv_per_share)}</div>
+        <div class="val-stat-sub">EPS × Sector P/E</div>
+      </div>
+    </div>`;
+}
+
+function renderEVValuation(d) {
+  const ev  = d.ev_ebitda_valuation;
+  const cmp = d.current_price;
+  if (!ev) return;
+
+  if (!ev.applicable) {
+    document.getElementById('evIV').textContent = 'N/A';
+    document.getElementById('evUpside').innerHTML = `<span style="color:var(--text3);font-size:11px;font-family:var(--mono)">${ev.na_reason}</span>`;
+    document.getElementById('evBody').innerHTML = `<div class="val-na"><span class="val-na-badge">NOT APPLICABLE</span>${ev.na_reason}</div>`;
+    return;
+  }
+
+  document.getElementById('evIV').textContent = fmtIV(ev.iv_per_share);
+  document.getElementById('evUpside').innerHTML = upsideHtml(ev.upside, cmp) + verdictBadge(ev.verdict);
+  document.getElementById('evSubtitle').textContent = `EBITDA × ${ev.sector_multiple}x (Damodaran) − Net Debt ÷ Shares`;
+
+  document.getElementById('evBody').innerHTML = `
+    <div class="val-method-body">
+      <div class="val-stat">
+        <div class="val-stat-label">EBITDA</div>
+        <div class="val-stat-val">${fmtCr(ev.ebitda_cr)}</div>
+        <div class="val-stat-sub">EBIT ${fmtCr(ev.ebit_cr)} + D&A ${fmtCr(ev.da_cr)}</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">EV/EBITDA Multiple</div>
+        <div class="val-stat-val">${ev.sector_multiple}x</div>
+        <div class="val-stat-sub">Damodaran India — ${d.sector}</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Enterprise Value</div>
+        <div class="val-stat-val">${fmtCr(ev.ev_cr)}</div>
+        <div class="val-stat-sub">EBITDA × Multiple</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Net Debt Deducted</div>
+        <div class="val-stat-val" style="color:var(--red)">− ${fmtCr(ev.net_debt_cr)}</div>
+        <div class="val-stat-sub">Equity: ${fmtCr(ev.equity_value_cr)}</div>
+      </div>
+    </div>`;
+}
+
+function renderPBValuation(d) {
+  const pb  = d.pb_valuation;
+  const cmp = d.current_price;
+  if (!pb) return;
+
+  const primaryLabel = pb.is_primary ? ' · Primary method for banks' : '';
+  document.getElementById('pbSubtitle').textContent = `Book Value ₹${pb.book_value_per_share} × Sector P/B ${pb.sector_pb}x (Damodaran)${primaryLabel}`;
+
+  if (!pb.applicable) {
+    document.getElementById('pbIV').textContent = 'N/A';
+    document.getElementById('pbUpside').innerHTML = `<span style="color:var(--text3);font-size:11px;font-family:var(--mono)">${pb.na_reason}</span>`;
+    document.getElementById('pbBody').innerHTML = `<div class="val-na"><span class="val-na-badge">NOT APPLICABLE</span>${pb.na_reason}</div>`;
+    return;
+  }
+
+  document.getElementById('pbIV').textContent = fmtIV(pb.iv_per_share);
+  document.getElementById('pbUpside').innerHTML = upsideHtml(pb.upside, cmp) + verdictBadge(pb.verdict);
+
+  const currentPB = pb.book_value_per_share > 0 ? (cmp / pb.book_value_per_share).toFixed(2) : '—';
+  document.getElementById('pbBody').innerHTML = `
+    <div class="val-method-body">
+      <div class="val-stat">
+        <div class="val-stat-label">Book Value / Share</div>
+        <div class="val-stat-val">₹${fmt(pb.book_value_per_share)}</div>
+        <div class="val-stat-sub">From Screener.in top ratios</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Sector Median P/B</div>
+        <div class="val-stat-val">${pb.sector_pb}x</div>
+        <div class="val-stat-sub">Damodaran India — ${d.sector}</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Current P/B</div>
+        <div class="val-stat-val">${currentPB}x</div>
+        <div class="val-stat-sub">CMP ÷ Book Value</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Intrinsic Value</div>
+        <div class="val-stat-val" style="color:var(--gold)">${fmtIV(pb.iv_per_share)}</div>
+        <div class="val-stat-sub">Book Value × P/B Multiple</div>
+      </div>
+    </div>`;
+}
+
+function renderComposite(d) {
+  const c   = d.composite;
+  const cmp = d.current_price;
+  const el  = document.getElementById('compositeBlock');
+  if (!c || !el) return;
+
+  if (!c.applicable) {
+    el.innerHTML = `<div class="val-na" style="padding:28px"><span class="val-na-badge">NOT APPLICABLE</span>${c.na_reason}</div>`;
+    return;
+  }
+
+  const uCls  = c.composite_upside >= 0 ? 'up' : 'down';
+  const uSign = c.composite_upside >= 0 ? '▲ +' : '▼ ';
+  const vMap  = {
+    'UNDERVALUED':  ['rgba(46,204,138,0.15)','var(--green)','rgba(46,204,138,0.4)'],
+    'OVERVALUED':   ['rgba(231,76,60,0.15)','var(--red)','rgba(231,76,60,0.4)'],
+    'FAIRLY VALUED':['rgba(243,156,18,0.15)','var(--orange)','rgba(243,156,18,0.4)'],
+  };
+  const [vBg, vColor, vBorder] = vMap[c.composite_verdict] || vMap['FAIRLY VALUED'];
+  const methodOrder = ['dcf','pe','ev_ebitda','pb'];
+  const methodNames = {dcf:'Weighted DCF', pe:'P/E Valuation', ev_ebitda:'EV/EBITDA Valuation', pb:'P/B Valuation'};
+
+  let tableRows = '';
+  for (const key of methodOrder) {
+    const m = c.methods[key];
+    if (!m) continue;
+    if (m.applicable) {
+      const barW = Math.max(Math.round(m.weight_adjusted * 1.8), 4);
+      const adjNote = m.weight_adjusted !== m.weight_original ? `<span style="color:var(--orange);font-size:10px"> → ${m.weight_adjusted}%</span>` : '';
+      tableRows += `
+        <tr>
+          <td>${methodNames[key]}</td>
+          <td>
+            <div class="weight-bar-wrap">
+              <div class="weight-bar" style="width:${barW}px"></div>
+              ${m.weight_original}%${adjNote}
+            </div>
+          </td>
+          <td style="color:var(--gold)">${fmtIV(m.iv)}</td>
+          <td style="color:var(--green)">+ ${fmtIV(m.contribution)}</td>
+        </tr>`;
+    } else {
+      tableRows += `
+        <tr class="na-row">
+          <td>${methodNames[key]}</td>
+          <td><div class="weight-bar-wrap">${m.weight_original}% <span style="background:rgba(136,153,170,0.1);border:1px solid var(--border);padding:1px 8px;border-radius:10px;font-size:9px;margin-left:4px;color:var(--text3)">N/A</span></div></td>
+          <td colspan="2" style="color:var(--text3);font-size:11px" title="${m.na_reason||''}">— ${(m.na_reason||'').substring(0,60)}${(m.na_reason||'').length>60?'...':''}</td>
+        </tr>`;
+    }
+  }
+
+  el.innerHTML = `
+    <div class="composite-header">
+      <div class="composite-title">Composite Valuation Score</div>
+      <div class="composite-source">${c.weights_source}</div>
+    </div>
+    <table class="composite-table">
+      <thead><tr>
+        <th>Method</th>
+        <th style="text-align:right">Weight</th>
+        <th style="text-align:right">IV / Share</th>
+        <th style="text-align:right">Contribution</th>
+      </tr></thead>
+      <tbody>
+        ${tableRows}
+        <tr class="total-row">
+          <td>Composite Intrinsic Value</td>
+          <td>100%</td>
+          <td>${fmtIV(c.composite_iv)}</td>
+          <td style="color:var(--gold)">${fmtIV(c.composite_iv)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="composite-footer">
+      <div class="composite-iv-block">
+        <div class="composite-iv-label">Composite Intrinsic Value</div>
+        <div class="composite-iv-val">${fmtIV(c.composite_iv)}</div>
+        <div class="composite-range">Method range: ${fmtIV(c.composite_low)} — ${fmtIV(c.composite_high)} · vs CMP ₹${fmt(cmp)}</div>
+      </div>
+      <div class="composite-verdict-block">
+        <div class="composite-upside" style="color:${uCls==='up'?'var(--green)':'var(--red)'}">${uSign}${Math.abs(c.composite_upside).toFixed(1)}%</div>
+        <span class="composite-badge" style="background:${vBg};color:${vColor};border:1px solid ${vBorder}">${c.composite_verdict}</span>
+        <div class="composite-note">${c.weights_note}</div>
+      </div>
+    </div>`;
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview(d) {
+  document.getElementById('ovCompanyName').textContent = d.company_name;
+  document.getElementById('ovTicker').textContent      = '📍 ' + d.ticker;
+  document.getElementById('ovMktCap').textContent      = '💰 Mkt Cap: ' + fmtCr(d.market_cap_cr);
+  document.getElementById('ovShares').textContent      = '📊 Shares: ' + (d.shares_cr || '—') + ' Cr';
+  document.getElementById('ovSector').textContent      = d.sector;
+  document.getElementById('ovROE').textContent         = (d.roe || '—') + '%';
+  document.getElementById('ovROCE').textContent        = (d.roce || '—') + '%';
+  document.getElementById('ovPE').textContent          = (d.pe_ratio || '—') + 'x';
+  document.getElementById('ovTax').textContent         = (d.tax_rate || '—') + '%';
+  document.getElementById('ovDebt').textContent        = fmt(d.total_debt_cr);
+  document.getElementById('ovBV').textContent          = '₹' + (d.book_value || '—');
+  document.getElementById('ovPrice').textContent       = '₹' + fmt(d.current_price);
+  document.getElementById('ovPriceSub').textContent    = 'NSE · ' + d.timestamp;
+}
+
+// ── VERDICTS ─────────────────────────────────────────────────────────────────
+function renderVerdicts(d) {
+  const cmp = d.current_price;
+  const scenarios = ['bear','base','bull'];
+  const labels    = ['Bear Case','Base Case','Bull Case'];
+  const growths   = [d.dcf.bear_growth, d.dcf.base_growth, d.dcf.bull_growth];
+
+  document.getElementById('verdictGrid').innerHTML = scenarios.map((s,i) => {
+    const sc      = d.dcf.scenarios[s];
+    const verdict = d.verdicts[s];
+    const upside  = verdict.upside;
+    const vClass  = verdict.verdict === 'UNDERVALUED' ? 'undervalued' :
+                    verdict.verdict === 'OVERVALUED'  ? 'overvalued'  : 'fairly';
+    const uClass  = upside >= 0 ? 'up' : 'down';
+    const uSign   = upside >= 0 ? '▲ +' : '▼ ';
+    const isBase  = s === 'base' ? 'base-case' : '';
+
+    return `
+    <div class="verdict-card ${vClass} ${isBase}">
+      <div class="verdict-scenario">${labels[i]}</div>
+      <div class="verdict-growth">Growth: ${growths[i]}% p.a.</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:8px">${[d.dcf.bear_growth_label,d.dcf.base_growth_label,d.dcf.bull_growth_label][i] || ''}</div>
+      <div class="verdict-iv">${fmtIV(sc.iv_per_share)}</div>
+      <div class="verdict-cmp">vs CMP ₹${fmt(cmp)}</div>
+      <div class="verdict-upside ${uClass}">${uSign}${Math.abs(upside).toFixed(1)}%</div>
+      <span class="verdict-badge ${vClass}">${verdict.verdict}</span>
+      ${sc.equity_warning ? '<div style="font-size:10px;color:var(--red);margin-top:6px;font-family:var(--mono)">⚠ EV &lt; Net Debt</div>' : ''}
+      ${sc.tv_warning ? '<div style="font-size:10px;color:var(--orange);margin-top:4px;font-family:var(--mono)">⚠ TV &gt; 70% of EV</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── FCFF CHART ────────────────────────────────────────────────────────────────
+function renderFCFFChart(hist) {
+  const vals  = hist.map(r => r.fcff);
+  const years = hist.map(r => r.year.replace('Mar ',''));
+  const max   = Math.max(...vals.filter(v=>v>0), 1);
+  const barsArea  = document.getElementById('barsArea');
+  const barLabels = document.getElementById('barLabels');
+
+  barsArea.innerHTML = vals.map((v, i) => {
+    const h   = Math.max((v / max) * 160, 4);
+    const cls = v < 0 ? 'historical' : 'historical';
+    return `
+    <div class="bar-group">
+      <div class="bar ${cls}" style="height:${h}px">
+        <div class="bar-tooltip">₹${fmt(v)} Cr</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  barLabels.innerHTML = years.map(y =>
+    `<div class="bar-label">${y}</div>`
+  ).join('');
+}
+
+// ── FCFF TABLE ────────────────────────────────────────────────────────────────
+function renderFCFFTable(hist) {
+  document.getElementById('fcffTableBody').innerHTML = hist.map(r => {
+    const norm = r.capex_note && r.capex_note.startsWith('normalized');
+    return `
+    <tr>
+      <td>${r.year}</td>
+      <td>${fmt(r.revenue)}</td>
+      <td>${fmt(r.ebit)}</td>
+      <td>${fmt(r.nopat)}</td>
+      <td>${fmt(r.da)}</td>
+      <td class="${norm ? 'normalized' : ''}">
+        ${fmt(r.capex)}
+        ${norm ? '<span class="row-label">normalized</span>' : ''}
+      </td>
+      <td class="highlight">${fmt(r.fcff)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── WACC TABLE ────────────────────────────────────────────────────────────────
+function renderWACC(w) {
+  const rows = [
+    ['Risk-Free Rate (Rf)',        fmtPct(w.rfr),              w.rfr_source],
+    ['Unlevered Beta (βU)',        w.unlevered_beta,            `Damodaran India — ${w.sector}`],
+    ['D/E Ratio (Book)',           w.de_ratio,                  'Borrowings ÷ Book Equity'],
+    ['Levered Beta (βL)',          w.levered_beta,              w.beta_formula],
+    ['Equity Risk Premium (ERP)',  fmtPct(w.erp),              w.erp_source],
+    ['Cost of Equity (Ke)',        fmtPct(w.cost_of_equity),   w.coe_formula],
+    ['———','———',''],
+    ['Interest Expense',          fmtCr(w.interest_cr),       ''],
+    ['Total Debt (Borrowings+)',   fmtCr(w.debt_cr),           'Screener.in Balance Sheet'],
+    ['Cost of Debt (Kd)',          fmtPct(w.cost_of_debt),     w.kd_source],
+    ['Tax Rate',                   fmtPct(w.tax_rate),         w.tax_source],
+    ['After-Tax Cost of Debt',     fmtPct(w.kd_aftertax),      `Kd × (1 − ${w.tax_rate}%)`],
+    ['———','———',''],
+    ['Equity Weight (E/V)',        fmtPct(w.equity_weight),    w.cs_source],
+    ['Debt Weight (D/V)',          fmtPct(w.debt_weight),      ''],
+  ];
+
+  let html = `
+  <div class="wacc-row header">
+    <div class="wacc-col-header">Component</div>
+    <div class="wacc-col-header">Value</div>
+    <div class="wacc-col-header">Source / Formula</div>
+  </div>`;
+
+  rows.forEach(([param, val, src]) => {
+    if (param === '———') {
+      html += `<div style="border-top:1px solid var(--border);margin:0;"></div>`;
+    } else {
+      html += `
+      <div class="wacc-row">
+        <div class="wacc-param">${param}</div>
+        <div class="wacc-val">${val}</div>
+        <div class="wacc-source">${src}</div>
+      </div>`;
+    }
+  });
+
+  html += `
+  <div class="wacc-row total">
+    <div class="wacc-param" style="font-weight:600;color:var(--text)">WACC</div>
+    <div class="wacc-val highlight">${fmtPct(w.wacc)}</div>
+    <div class="wacc-source">${w.wacc_note}</div>
+  </div>`;
+
+  document.getElementById('waccTable').innerHTML = html;
+}
+
+// ── PROJECTION TABLES ─────────────────────────────────────────────────────────
+function renderProjTables(dcf) {
+  ['bear','base','bull'].forEach(s => {
+    const sc   = dcf.scenarios[s];
+    const body = document.getElementById(`proj${s.charAt(0).toUpperCase()+s.slice(1)}Body`);
+    body.innerHTML = sc.projections.map(p => `
+    <tr>
+      <td>${p.year}</td>
+      <td>${fmtPct(p.growth_rate)}</td>
+      <td class="highlight">${fmt(p.fcff)}</td>
+      <td>${p.pv_factor}</td>
+      <td class="green">${fmt(p.pv_fcff)}</td>
+    </tr>`).join('') + `
+    <tr style="border-top:1px solid var(--border2)">
+      <td colspan="4" style="color:var(--text2)">Sum of PV of FCFs</td>
+      <td class="green">${fmt(sc.sum_pv_fcfs)}</td>
+    </tr>`;
+  });
+}
+
+function showProj(scenario, el) {
+  document.querySelectorAll('.scenario-tabs .scenario-tab').forEach(t => {
+    if (t.parentElement === el.parentElement) t.classList.remove('active');
+  });
+  el.classList.add('active');
+  ['bear','base','bull'].forEach(s => {
+    const panel = document.getElementById(`proj${s.charAt(0).toUpperCase()+s.slice(1)}`);
+    panel.classList.toggle('active', s === scenario);
+  });
+}
+
+// ── TERMINAL VALUE ────────────────────────────────────────────────────────────
+function renderTV(scenario) {
+  const sc = DATA.dcf.scenarios[scenario];
+  document.getElementById('tvGrid').innerHTML = `
+  <div class="tv-card">
+    <div class="tv-label">Terminal Growth Rate</div>
+    <div class="tv-val">${DATA.dcf.tgr}%</div>
+    <div class="tv-sub">Capped at 6.5%</div>
+  </div>
+  <div class="tv-card">
+    <div class="tv-label">Terminal FCFF (Yr 6)</div>
+    <div class="tv-val">${fmtCr(sc.terminal_fcff)}</div>
+    <div class="tv-sub">Year 5 FCFF × (1 + TGR)</div>
+  </div>
+  <div class="tv-card">
+    <div class="tv-label">Terminal Value</div>
+    <div class="tv-val">${fmtCr(sc.terminal_value)}</div>
+    <div class="tv-sub">TV = FCFF₆ ÷ (WACC − TGR)</div>
+  </div>
+  <div class="tv-card">
+    <div class="tv-label">PV of Terminal Value</div>
+    <div class="tv-val">${fmtCr(sc.pv_terminal)}</div>
+    <div class="tv-sub">Discounted at WACC for ${DATA.dcf.years} yrs</div>
+    ${sc.tv_warning ? `<div class="tv-warning-badge">⚠ ${sc.tv_pct_of_ev}% of EV</div>` : `<div class="tv-sub">${sc.tv_pct_of_ev}% of EV</div>`}
+  </div>`;
+}
+
+function showTV(scenario, el) {
+  el.parentElement.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTVTab = scenario;
+  renderTV(scenario);
+}
+
+// ── BRIDGE ────────────────────────────────────────────────────────────────────
+function renderBridge(scenario) {
+  const sc = DATA.dcf.scenarios[scenario];
+  document.getElementById('bridgeCard').innerHTML = `
+  <div class="bridge-row"><div class="bridge-label">Sum of PV of FCFs (Yr 1–${DATA.dcf.years})</div><div class="bridge-val">+ ${fmtCr(sc.sum_pv_fcfs)}</div></div>
+  <div class="bridge-row"><div class="bridge-label">PV of Terminal Value</div><div class="bridge-val">+ ${fmtCr(sc.pv_terminal)}</div></div>
+  <div class="bridge-row"><div class="bridge-label">Enterprise Value</div><div class="bridge-val" style="color:var(--blue)">${fmtCr(sc.enterprise_value)}</div></div>
+  <div class="bridge-row"><div class="bridge-label">Net Debt (Borrowings − Cash)</div><div class="bridge-val negative">− ${fmtCr(sc.net_debt)}</div></div>
+  <div class="bridge-row"><div class="bridge-label" style="color:var(--text)">Equity Value</div><div class="bridge-val" style="color:var(--green)">${fmtCr(sc.equity_value)}</div></div>
+  <div class="bridge-row"><div class="bridge-label">Shares Outstanding</div><div class="bridge-val">${DATA.shares_cr} Cr shares</div></div>
+  <div class="bridge-row"><div class="bridge-label" style="font-size:15px;font-weight:600">Intrinsic Value per Share</div><div class="bridge-val total">${fmtIV(sc.iv_per_share)}</div></div>`;
+}
+
+function showBridge(scenario, el) {
+  el.parentElement.querySelectorAll('.bridge-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentBridgeTab = scenario;
+  renderBridge(scenario);
+}
+
+// ── SENSITIVITY ───────────────────────────────────────────────────────────────
+function renderSensitivity(sens, cmp) {
+  if (!sens) {
+    document.getElementById('sensTable').innerHTML = '<div style="color:var(--text3);font-family:var(--mono);font-size:12px">Sensitivity data unavailable.</div>';
+    return;
+  }
+  const baseWACC = sens.wacc_range[1];
+  const baseTGR  = sens.tgr_range[1];
+
+  let html = `<table class="sens-table"><thead><tr>
+    <th>WACC \\ TGR</th>
+    ${sens.tgr_range.map(t => `<th>TGR ${t}%</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  sens.grid.forEach((row, wi) => {
+    html += `<tr><td class="sens-row-label">WACC ${sens.wacc_range[wi]}%</td>`;
+    row.forEach((val, ti) => {
+      const isBase = sens.wacc_range[wi] === baseWACC && sens.tgr_range[ti] === baseTGR;
+      const cls = val == null ? '' :
+                  val > cmp * 1.15 ? 'high' :
+                  val < cmp * 0.85 ? 'low'  : 'mid';
+      html += `<td class="${cls}${isBase ? ' base' : ''}">${val != null ? '₹' + fmt(val) : '—'}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('sensTable').innerHTML = html;
+}
+
+// ── WARNINGS ──────────────────────────────────────────────────────────────────
+function renderWarnings(warnings) {
+  document.getElementById('warnBadge').textContent = warnings.length;
+  const icons = { info: 'ℹ', caution: '⚠', important: '🔴' };
+  document.getElementById('warningsList').innerHTML = warnings.map(w => `
+  <div class="warning-item ${w.level}">
+    <div class="warning-icon">${icons[w.level] || 'ℹ'}</div>
+    <div class="warning-content">
+      <div class="warning-title">${w.title}</div>
+      <div class="warning-msg">${w.message}</div>
+    </div>
+  </div>`).join('');
+}
+
+// ── ASSUMPTIONS ───────────────────────────────────────────────────────────────
+function renderAssumptions(assumptions) {
+  document.getElementById('assumBadge').textContent = assumptions.length;
+  const table = document.getElementById('assumptionsTable');
+  const header = table.querySelector('.assumption-row.header').outerHTML;
+  table.innerHTML = header + assumptions.map(a => `
+  <div class="assumption-row">
+    <div class="assumption-param">${a.parameter}</div>
+    <div class="assumption-val">${a.value}</div>
+    <div class="assumption-source">${a.source}</div>
+    <div><span class="assumption-type type-${a.type}">${a.type.replace('_',' ')}</span></div>
+  </div>`).join('');
+}
+</script>
+</body>
+</html>
