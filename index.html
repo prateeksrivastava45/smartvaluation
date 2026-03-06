@@ -1670,27 +1670,42 @@ function renderPEValuation(d) {
   document.getElementById('peUpside').innerHTML = upsideHtml(pe.upside, cmp) + verdictBadge(pe.verdict);
   document.getElementById('peSubtitle').textContent = `Normalized EPS × Sector P/E ${pe.sector_pe}x (Damodaran India)`;
 
+  const sharesCr = d.shares_cr ? d.shares_cr + ' Cr' : '—';
+  const currentPE = d.pe_ratio ? d.pe_ratio + 'x' : '—';
   document.getElementById('peBody').innerHTML = `
-    <div class="val-method-body">
+    <div class="val-method-body" style="grid-template-columns:repeat(3,1fr)">
+      <div class="val-stat">
+        <div class="val-stat-label">Avg Net Profit</div>
+        <div class="val-stat-val">${fmtCr(pe.avg_profit_cr)}</div>
+        <div class="val-stat-sub">${pe.years_used}-year average</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Shares Outstanding</div>
+        <div class="val-stat-val">${sharesCr}</div>
+        <div class="val-stat-sub">Market Cap ÷ CMP</div>
+      </div>
       <div class="val-stat">
         <div class="val-stat-label">Normalized EPS</div>
         <div class="val-stat-val">₹${fmt(pe.normalized_eps)}</div>
-        <div class="val-stat-sub">${pe.years_used}-yr avg net profit ÷ shares</div>
+        <div class="val-stat-sub">Avg Profit ÷ Shares</div>
       </div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:0 24px"></div>
+    <div class="val-method-body" style="grid-template-columns:repeat(3,1fr)">
       <div class="val-stat">
         <div class="val-stat-label">Sector Median P/E</div>
         <div class="val-stat-val">${pe.sector_pe}x</div>
         <div class="val-stat-sub">Damodaran India — ${d.sector}</div>
       </div>
       <div class="val-stat">
-        <div class="val-stat-label">Avg Net Profit</div>
-        <div class="val-stat-val">${fmtCr(pe.avg_profit_cr)}</div>
-        <div class="val-stat-sub">Used for EPS normalization</div>
-      </div>
-      <div class="val-stat">
         <div class="val-stat-label">Intrinsic Value</div>
         <div class="val-stat-val" style="color:var(--gold)">${fmtIV(pe.iv_per_share)}</div>
         <div class="val-stat-sub">EPS × Sector P/E</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Current Market P/E</div>
+        <div class="val-stat-val">${currentPE}</div>
+        <div class="val-stat-sub">vs Sector Median ${pe.sector_pe}x</div>
       </div>
     </div>`;
 }
@@ -1712,7 +1727,7 @@ function renderEVValuation(d) {
   document.getElementById('evSubtitle').textContent = `EBITDA × ${ev.sector_multiple}x (Damodaran) − Net Debt ÷ Shares`;
 
   document.getElementById('evBody').innerHTML = `
-    <div class="val-method-body">
+    <div class="val-method-body" style="grid-template-columns:repeat(3,1fr)">
       <div class="val-stat">
         <div class="val-stat-label">EBITDA</div>
         <div class="val-stat-val">${fmtCr(ev.ebitda_cr)}</div>
@@ -1726,12 +1741,25 @@ function renderEVValuation(d) {
       <div class="val-stat">
         <div class="val-stat-label">Enterprise Value</div>
         <div class="val-stat-val">${fmtCr(ev.ev_cr)}</div>
-        <div class="val-stat-sub">EBITDA × Multiple</div>
+        <div class="val-stat-sub">EBITDA × ${ev.sector_multiple}x</div>
       </div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:0 24px"></div>
+    <div class="val-method-body" style="grid-template-columns:repeat(3,1fr)">
       <div class="val-stat">
         <div class="val-stat-label">Net Debt Deducted</div>
         <div class="val-stat-val" style="color:var(--red)">− ${fmtCr(ev.net_debt_cr)}</div>
-        <div class="val-stat-sub">Equity: ${fmtCr(ev.equity_value_cr)}</div>
+        <div class="val-stat-sub">Borrowings − Cash</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Equity Value</div>
+        <div class="val-stat-val">${fmtCr(ev.equity_value_cr)}</div>
+        <div class="val-stat-sub">EV − Net Debt</div>
+      </div>
+      <div class="val-stat">
+        <div class="val-stat-label">Intrinsic Value</div>
+        <div class="val-stat-val" style="color:var(--gold)">${fmtIV(ev.iv_per_share)}</div>
+        <div class="val-stat-sub">Equity Value ÷ Shares</div>
       </div>
     </div>`;
 }
@@ -1826,7 +1854,8 @@ function renderComposite(d) {
         <tr class="na-row">
           <td>${methodNames[key]}</td>
           <td><div class="weight-bar-wrap">${m.weight_original}% <span style="background:rgba(136,153,170,0.1);border:1px solid var(--border);padding:1px 8px;border-radius:10px;font-size:9px;margin-left:4px;color:var(--text3)">N/A</span></div></td>
-          <td colspan="2" style="color:var(--text3);font-size:11px" title="${m.na_reason||''}">— ${(m.na_reason||'').substring(0,60)}${(m.na_reason||'').length>60?'...':''}</td>
+          <td style="color:var(--text3);font-size:11px">—</td>
+          <td style="color:var(--text3);font-size:10px" title="${m.na_reason||''}">${m.weight_original === 0 ? 'Not a primary method for this sector (Damodaran)' : (m.na_reason||'').substring(0,55) + ((m.na_reason||'').length>55?'...':'')}</td>
         </tr>`;
     }
   }
