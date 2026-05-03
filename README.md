@@ -1,42 +1,31 @@
-# SmartValuation
+# Weather Dashboard
 
-**Fundamental Stock Analysis · India**
-
-A comprehensive tool for analyzing Indian stocks using fundamental analysis principles. This project provides insights into stock valuations, financial ratios, and investment opportunities in the Indian market.
-
----
-
-## 📋 Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Technologies Used](#technologies-used)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+A responsive weather dashboard that fetches real-time weather data from OpenWeatherMap API. Built with Flask backend and HTML/CSS/JavaScript frontend.
 
 ---
 
 ## ✨ Features
 
-- 📊 Fundamental stock analysis for Indian companies
-- 💹 Financial ratio calculations
-- 📈 Valuation metrics
-- 🔍 Company financial data analysis
-- 🎯 Investment insights
+- 🌍 **Real-time Weather Data** - Fetch current weather conditions
+- 📍 **City Search** - Search weather by city name
+- 🌡️ **Temperature Display** - Current temp, "feels like", min/max
+- 💨 **Weather Details** - Wind speed, humidity, pressure, visibility
+- 🎨 **Responsive Design** - Works on desktop, tablet, and mobile
+- 📊 **5-day Forecast** - Extended weather prediction
+- 🌙 **Dark Mode** - Eye-friendly dark theme
+- 📱 **Geolocation** - Auto-detect user's location
+- 🔄 **Auto-Refresh** - Update weather every 10 minutes
 
 ---
 
-## 🚀 Installation
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.8+
 - pip (Python package manager)
 - Git
 
-### Steps
+### Installation Steps
 
 1. **Clone the repository**
    ```bash
@@ -44,40 +33,39 @@ A comprehensive tool for analyzing Indian stocks using fundamental analysis prin
    cd smartvaluation
    ```
 
-2. **Create a virtual environment**
+2. **Create virtual environment**
    ```bash
    python -m venv venv
    ```
 
-3. **Activate the virtual environment**
-   - **Windows:**
-     ```bash
-     venv\Scripts\activate
-     ```
-   - **macOS/Linux:**
-     ```bash
-     source venv/bin/activate
-     ```
+3. **Activate virtual environment**
+   - **Windows:** `venv\Scripts\activate`
+   - **macOS/Linux:** `source venv/bin/activate`
 
 4. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
----
+5. **Get Free API Key**
+   - Visit [OpenWeatherMap](https://openweathermap.org/api)
+   - Sign up for free account
+   - Get your API key
 
-## 💻 Usage
+6. **Create .env file**
+   ```
+   OPENWEATHER_API_KEY=your_api_key_here
+   FLASK_ENV=development
+   FLASK_DEBUG=True
+   ```
 
-### Basic Example
-```python
-# Add usage examples here
-# Example: how to run the application
-```
+7. **Run the application**
+   ```bash
+   python app.py
+   ```
 
-### Running the Application
-```bash
-python main.py
-```
+8. **Open in browser**
+   - Go to: http://localhost:5000
 
 ---
 
@@ -85,45 +73,83 @@ python main.py
 
 ```
 smartvaluation/
-├── README.md              # This file
-├── requirements.txt       # Python dependencies
-├── .gitignore            # Git ignore rules
-├── LICENSE               # Project license
-├── main.py               # Main application entry point
-├── data/                 # Data files and datasets
-├── src/                  # Source code
-│   ├── analysis.py       # Analysis functions
-│   └── utils.py          # Utility functions
-└── templates/            # HTML templates
-    └── index.html        # Main HTML file
+├── app.py                    # Flask application
+├── requirements.txt          # Python dependencies
+├── .env                      # Environment variables (create this)
+├── .gitignore               # Git ignore rules
+├── README.md                # This file
+├── LICENSE                  # MIT License
+├── SECURITY.md              # Security policy
+│
+├── static/                  # Static files
+│   ├── css/
+│   │   └── style.css        # Dashboard styling
+│   └── js/
+│       └── script.js        # Dashboard functionality
+│
+├── templates/
+│   └── index.html           # Main dashboard HTML
+│
+└── src/                     # Source code
+    ├── weather_api.py       # OpenWeatherMap integration
+    ├── utils.py             # Utility functions
+    └── config.py            # Flask configuration
+```
+
+---
+
+## 🔌 API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/` | GET | Main dashboard |
+| `/api/weather` | GET | Get current weather |
+| `/api/forecast` | GET | Get 5-day forecast |
+| `/api/weather/coordinates` | GET | Get weather by lat/lon |
+| `/health` | GET | Health check |
+
+**Example API Call:**
+```javascript
+fetch('/api/weather?city=Delhi&units=metric')
+  .then(r => r.json())
+  .then(data => console.log(data))
 ```
 
 ---
 
 ## 🛠️ Technologies Used
 
-- **Python** - Backend analysis and calculations
-- **HTML** - Frontend interface
-- **pandas** - Data manipulation and analysis
-- **requests** - API calls for stock data
+- **Backend:** Flask, Python
+- **Frontend:** HTML5, CSS3, JavaScript ES6+
+- **API:** OpenWeatherMap
+- **Libraries:** Requests, python-dotenv
+
+---
+
+## 🔐 Security
+
+- ✅ API key stored in `.env` (never commit to git)
+- ✅ Input validation on all searches
+- ✅ CORS headers configured
+- ✅ Environment-based configuration
+
+See [SECURITY.md](SECURITY.md) for details.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
-
 1. Fork the repository
-2. Create a branch for your feature: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -m "Add your message"`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Create a Pull Request
+2. Create feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -m "Add feature"`
+4. Push to branch: `git push origin feature/your-feature`
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -131,16 +157,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Author:** Prateek Srivastava
 - **GitHub:** [@prateeksrivastava45](https://github.com/prateeksrivastava45)
-- **Email:** [Your Email Here]
 
 ---
 
-## 📚 Resources
-
-- [GitHub Documentation](https://docs.github.com)
-- [Python Documentation](https://docs.python.org)
-- [Fundamental Stock Analysis Guide](https://www.investopedia.com/terms/f/fundamentalanalysis.asp)
-
----
-
-**⭐ If you find this project helpful, please consider giving it a star!**
+**⭐ Star this project if you find it helpful!**
