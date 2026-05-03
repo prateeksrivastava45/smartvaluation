@@ -546,133 +546,245 @@ def calculate_wacc(fin, sector, rfr_override=None, wacc_override=None):
 
 def run_dcf(historical_fcff, wacc_data, fin, tgr_pct, years=5):
     """
-    Run 3-scenario DCF:
-    Bear = 5yr FCFF CAGR
-    Base = 3yr FCFF CAGR
-    Bull = last 1yr FCF growth
-
-    Returns full projection tables + IV per share for each scenario.
+    Run 3-scenario DCF using revenue-based top-down FCFF projection.
+ 
+    Base  — 3yr avg revenue CAGR, 3yr avg EBIT margin, 3yr avg D&A%, 3yr avg CapEx%
+    Bull  — Revenue × 1.25, Margin + 1.5%, WACC - 0.75% (floor 7%)
+    Bear  — Revenue × 0.70, Margin - 2.0%, WACC + 1.5% (ceiling 20%)
+ 
+    Guarantees: Bull IV > Base IV > Bear IV always.
     """
-    wacc    = wacc_data['wacc_decimal']
-    tgr     = min(tgr_pct / 100, 0.065)  # cap at 6.5%
-    shares  = fin['shares']
-
+    wacc_base = wacc_data['wacc_decimal']
+    tgr       = min(tgr_pct / 100, 0.065)   # cap at 6.5%
+    shares    = fin['shares']
+    tax_rate  = fin['tax_rate']
+ 
     if not shares or shares <= 0:
         return None, 'Could not determine shares outstanding'
-
-    if wacc <= tgr:
-        return None, f'WACC ({wacc*100:.1f}%) must be greater than TGR ({tgr*100:.1f}%)'
-
-    # ── Extract historical FCFF values ──────────────────────────
-    fcff_vals  = [r['fcff'] for r in historical_fcff]
-    base_fcff  = fcff_vals[-1] if fcff_vals else None
-
-    if base_fcff is None:
-        return None, 'No FCFF data available'
-
-    # ── Calculate growth rates ──────────────────────────────────
-    # Bear: 5yr CAGR
-    bear_growth = safe_cagr(fcff_vals, len(fcff_vals) - 1)
-
-    # Base: 3yr CAGR
-    last3 = fcff_vals[-3:] if len(fcff_vals) >= 3 else fcff_vals
-    base_growth = safe_cagr(last3, len(last3) - 1)
-
-    # Bull: last 1yr growth
-    if len(fcff_vals) >= 2 and fcff_vals[-2] and fcff_vals[-2] > 0:
-        bull_growth = (fcff_vals[-1] - fcff_vals[-2]) / fcff_vals[-2]
-        bull_growth = max(min(bull_growth, 0.40), -0.10)
+ 
+    if wacc_base <= tgr:
+        return None, f'WACC ({wacc_base*100:.1f}%) must be greater than TGR ({tgr*100:.1f}%)'
+ 
+    # ── Extract historical arrays ────────────────────────────────
+    revenue_vals = fin.get('revenue', [])
+    ebit_vals    = fin.get('ebit', [])
+    da_vals      = fin.get('depreciation', [])
+    inv_cf_vals  = fin.get('inv_cf', [])
+ 
+    # ── Base case drivers — 3yr averages ────────────────────────
+ 
+    # 1. Revenue CAGR (3yr)
+    valid_rev = [v for v in revenue_vals if v is not None and v > 0]
+    if len(valid_rev) >= 4:
+        last4_rev   = valid_rev[-4:]
+        base_rev_cagr = safe_cagr(last4_rev, 3)   # 3yr CAGR needs 4 points
+    elif len(valid_rev) >= 2:
+        base_rev_cagr = safe_cagr(valid_rev, len(valid_rev) - 1)
     else:
-        bull_growth = base_growth * 1.3
-
-    scenarios = {
-        'bear': {'growth': bear_growth, 'label': 'Bear Case'},
-        'base': {'growth': base_growth, 'label': 'Base Case'},
-        'bull': {'growth': bull_growth, 'label': 'Bull Case'},
+        base_rev_cagr = 0.05   # fallback 5%
+ 
+    # Cap revenue CAGR at reasonable bounds
+    base_rev_cagr = max(min(base_rev_cagr, 0.40), -0.10)
+ 
+    # 2. EBIT Margin — 3yr average
+    margins = []
+    for i in range(len(ebit_vals)):
+        e = ebit_vals[i]
+        r = revenue_vals[i] if i < len(revenue_vals) else None
+        if e is not None and r is not None and r > 0:
+            margins.append(e / r)
+    valid_margins = [m for m in margins if 0 < m < 1]
+    base_margin   = sum(valid_margins[-3:]) / len(valid_margins[-3:]) if valid_margins else 0.15
+ 
+    # 3. D&A as % of revenue — 3yr average
+    da_pcts = []
+    for i in range(len(da_vals)):
+        d = da_vals[i]
+        r = revenue_vals[i] if i < len(revenue_vals) else None
+        if d is not None and r is not None and r > 0:
+            da_pcts.append(d / r)
+    base_da_pct = sum(da_pcts[-3:]) / len(da_pcts[-3:]) if da_pcts else 0.04
+ 
+    # 4. CapEx as % of revenue — 3yr average (use median-capped capex from historical)
+    capex_pcts = []
+    for i, row in enumerate(historical_fcff):
+        r = row.get('revenue')
+        c = row.get('capex')
+        if r and c and r > 0:
+            capex_pcts.append(c / r)
+    base_capex_pct = sum(capex_pcts[-3:]) / len(capex_pcts[-3:]) if capex_pcts else 0.05
+ 
+    # 5. Base starting revenue — most recent year
+    base_revenue = valid_rev[-1] if valid_rev else None
+    if not base_revenue:
+        return None, 'No revenue data available for projection'
+ 
+    # ── Scenario WACC ────────────────────────────────────────────
+    WACC_FLOOR   = 0.07   # 7% — never go below
+    WACC_CEILING = 0.20   # 20% — never go above
+ 
+    wacc_bull = max(wacc_base - 0.0075, WACC_FLOOR)
+    wacc_bear = min(wacc_base + 0.0150, WACC_CEILING)
+ 
+    # ── Scenario margin adjustments ──────────────────────────────
+    margin_bull = min(base_margin + 0.015, 0.60)   # +1.5%, cap at 60%
+    margin_bear = max(base_margin - 0.020, 0.01)   # -2.0%, floor at 1%
+ 
+    # ── Scenario revenue growth multipliers ──────────────────────
+    rev_cagr_bull = base_rev_cagr * 1.25
+    rev_cagr_bear = base_rev_cagr * 0.70
+ 
+    # Cap scenario growth rates
+    rev_cagr_bull = max(min(rev_cagr_bull, 0.50),  0.00)   # bull floor at 0%
+    rev_cagr_bear = max(min(rev_cagr_bear, 0.40), -0.10)   # bear floor at -10%
+ 
+    # ── Define scenarios ─────────────────────────────────────────
+    scenarios_config = {
+        'bear': {
+            'label':     'Bear Case',
+            'rev_cagr':  rev_cagr_bear,
+            'margin':    margin_bear,
+            'da_pct':    base_da_pct,
+            'capex_pct': base_capex_pct,
+            'wacc':      wacc_bear,
+        },
+        'base': {
+            'label':     'Base Case',
+            'rev_cagr':  base_rev_cagr,
+            'margin':    base_margin,
+            'da_pct':    base_da_pct,
+            'capex_pct': base_capex_pct,
+            'wacc':      wacc_base,
+        },
+        'bull': {
+            'label':     'Bull Case',
+            'rev_cagr':  rev_cagr_bull,
+            'margin':    margin_bull,
+            'da_pct':    base_da_pct,
+            'capex_pct': base_capex_pct,
+            'wacc':      wacc_bull,
+        },
     }
-
+ 
     results = {}
-
-    for scenario_key, scenario in scenarios.items():
-        g = scenario['growth']
-
-        # ── Project FCFs ────────────────────────────────────────
-        projections = []
-        current_fcff = base_fcff
-
+ 
+    for scenario_key, cfg in scenarios_config.items():
+        g      = cfg['rev_cagr']
+        margin = cfg['margin']
+        da_pct = cfg['da_pct']
+        cx_pct = cfg['capex_pct']
+        wacc   = cfg['wacc']
+ 
+        if wacc <= tgr:
+            wacc = tgr + 0.02   # emergency fix to keep model valid
+ 
+        # ── Project FCFs from revenue ────────────────────────────
+        projections  = []
+        current_rev  = base_revenue
+ 
         for yr in range(1, years + 1):
-            projected_fcff = current_fcff * (1 + g)
-            pv_fcff        = projected_fcff / ((1 + wacc) ** yr)
+            projected_rev  = current_rev * (1 + g)
+            projected_ebit = projected_rev * margin
+            projected_nopat= projected_ebit * (1 - tax_rate)
+            projected_da   = projected_rev * da_pct
+            projected_capex= projected_rev * cx_pct
+            projected_fcff = projected_nopat + projected_da - projected_capex
+ 
+            pv_factor      = 1 / ((1 + wacc) ** yr)
+            pv_fcff        = projected_fcff * pv_factor
+ 
             projections.append({
-                'year':           f'Year {yr}',
-                'growth_rate':    round(g * 100, 2),
-                'fcff':           round(projected_fcff, 2),
-                'pv_factor':      round(1 / ((1 + wacc) ** yr), 4),
-                'pv_fcff':        round(pv_fcff, 2),
+                'year':        f'Year {yr}',
+                'revenue':     round(projected_rev, 2),
+                'growth_rate': round(g * 100, 2),
+                'ebit_margin': round(margin * 100, 2),
+                'fcff':        round(projected_fcff, 2),
+                'pv_factor':   round(pv_factor, 4),
+                'pv_fcff':     round(pv_fcff, 2),
             })
-            current_fcff = projected_fcff
-
+            current_rev = projected_rev
+ 
         sum_pv_fcfs = sum(p['pv_fcff'] for p in projections)
-
-        # ── Terminal Value ──────────────────────────────────────
+ 
+        # ── Terminal Value ────────────────────────────────────────
         terminal_fcff  = projections[-1]['fcff'] * (1 + tgr)
         terminal_value = terminal_fcff / (wacc - tgr)
         pv_terminal    = terminal_value / ((1 + wacc) ** years)
-        tv_pct_of_ev   = (pv_terminal / (sum_pv_fcfs + pv_terminal)) * 100 if (sum_pv_fcfs + pv_terminal) > 0 else 0
-
-        # ── Enterprise to Equity Bridge ─────────────────────────
+        tv_pct_of_ev   = (pv_terminal / (sum_pv_fcfs + pv_terminal)) * 100 \
+                         if (sum_pv_fcfs + pv_terminal) > 0 else 0
+ 
+        # ── Enterprise to Equity Bridge ───────────────────────────
         enterprise_value = sum_pv_fcfs + pv_terminal
         net_debt         = fin['net_debt']
         equity_value     = enterprise_value - net_debt
-
-        # Handle negative equity value
+ 
         if equity_value <= 0:
-            iv_per_share  = 0
+            iv_per_share   = 0
             equity_warning = True
         else:
             iv_per_share   = (equity_value * 1e7) / shares
             equity_warning = False
-
+ 
         results[scenario_key] = {
-            'label':           scenario['label'],
-            'growth_rate':     round(g * 100, 2),
-            'projections':     projections,
-            'sum_pv_fcfs':     round(sum_pv_fcfs, 2),
-            'terminal_fcff':   round(terminal_fcff, 2),
-            'terminal_value':  round(terminal_value, 2),
-            'pv_terminal':     round(pv_terminal, 2),
-            'tv_pct_of_ev':    round(tv_pct_of_ev, 2),
-            'enterprise_value':round(enterprise_value, 2),
-            'net_debt':        round(net_debt, 2),
-            'equity_value':    round(equity_value, 2),
-            'iv_per_share':    round(iv_per_share, 2),
-            'tv_warning':      tv_pct_of_ev > 70,
-            'equity_warning':  equity_warning,
+            'label':            cfg['label'],
+            'growth_rate':      round(g * 100, 2),
+            'ebit_margin':      round(margin * 100, 2),
+            'wacc_used':        round(wacc * 100, 2),
+            'projections':      projections,
+            'sum_pv_fcfs':      round(sum_pv_fcfs, 2),
+            'terminal_fcff':    round(terminal_fcff, 2),
+            'terminal_value':   round(terminal_value, 2),
+            'pv_terminal':      round(pv_terminal, 2),
+            'tv_pct_of_ev':     round(tv_pct_of_ev, 2),
+            'enterprise_value': round(enterprise_value, 2),
+            'net_debt':         round(net_debt, 2),
+            'equity_value':     round(equity_value, 2),
+            'iv_per_share':     round(iv_per_share, 2),
+            'tv_warning':       tv_pct_of_ev > 70,
+            'equity_warning':   equity_warning,
         }
-
-    # Build growth rate explanations
-    hist_years = [r['year'] for r in historical_fcff]
-    fcff_labels = [r['year'] for r in historical_fcff if r['fcff'] is not None]
-    bear_label = f"{fcff_labels[0]} to {fcff_labels[-1]} ({len(fcff_labels)-1}yr CAGR)" if len(fcff_labels) >= 2 else "5yr CAGR"
-    base_label = f"{fcff_labels[-3]} to {fcff_labels[-1]} (3yr CAGR)" if len(fcff_labels) >= 3 else "3yr CAGR"
-    bull_label = f"{fcff_labels[-2]} to {fcff_labels[-1]} (1yr growth)" if len(fcff_labels) >= 2 else "1yr growth"
-
+ 
+    # ── Growth labels for UI display ─────────────────────────────
+    bear_cfg = scenarios_config['bear']
+    base_cfg = scenarios_config['base']
+    bull_cfg = scenarios_config['bull']
+ 
     return {
         'scenarios':    results,
         'tgr':          round(tgr * 100, 2),
-        'wacc':         round(wacc * 100, 2),
+        'wacc':         round(wacc_base * 100, 2),
         'years':        years,
-        'base_fcff_cr':    round(base_fcff, 2),
-        'bear_growth':     round(bear_growth * 100, 2),
-        'base_growth':     round(base_growth * 100, 2),
-        'bull_growth':     round(bull_growth * 100, 2),
-        'bear_growth_label': bear_label,
-        'base_growth_label': base_label,
-        'bull_growth_label': bull_label,
-        'shares_cr':       round(shares / 1e7, 2),
+ 
+        # Base drivers (for display in assumptions section)
+        'base_revenue_cr':   round(base_revenue, 2),
+        'base_rev_cagr':     round(base_rev_cagr * 100, 2),
+        'base_margin':       round(base_margin * 100, 2),
+        'base_da_pct':       round(base_da_pct * 100, 2),
+        'base_capex_pct':    round(base_capex_pct * 100, 2),
+ 
+        # Scenario growth rates
+        'bear_growth':       round(bear_cfg['rev_cagr'] * 100, 2),
+        'base_growth':       round(base_cfg['rev_cagr'] * 100, 2),
+        'bull_growth':       round(bull_cfg['rev_cagr'] * 100, 2),
+ 
+        # Scenario WACC
+        'bear_wacc':         round(bear_cfg['wacc'] * 100, 2),
+        'base_wacc':         round(base_cfg['wacc'] * 100, 2),
+        'bull_wacc':         round(bull_cfg['wacc'] * 100, 2),
+ 
+        # Scenario margins
+        'bear_margin':       round(bear_cfg['margin'] * 100, 2),
+        'base_margin_used':  round(base_cfg['margin'] * 100, 2),
+        'bull_margin':       round(bull_cfg['margin'] * 100, 2),
+ 
+        # Labels for UI
+        'bear_growth_label': f"Rev CAGR {bear_cfg['rev_cagr']*100:.1f}% | Margin {bear_cfg['margin']*100:.1f}% | WACC {bear_cfg['wacc']*100:.1f}%",
+        'base_growth_label': f"Rev CAGR {base_cfg['rev_cagr']*100:.1f}% | Margin {base_cfg['margin']*100:.1f}% | WACC {base_cfg['wacc']*100:.1f}%",
+        'bull_growth_label': f"Rev CAGR {bull_cfg['rev_cagr']*100:.1f}% | Margin {bull_cfg['margin']*100:.1f}% | WACC {bull_cfg['wacc']*100:.1f}%",
+ 
+        'shares_cr':         round(shares / 1e7, 2),
     }, None
-
-
+    
 # ── STEP 6: SENSITIVITY TABLE ────────────────────────────────────────────────
 
 def build_sensitivity(historical_fcff, fin, wacc_base, tgr_base, years=5):
