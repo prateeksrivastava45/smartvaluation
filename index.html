@@ -993,7 +993,24 @@ body {
 .composite-upside { font-family: var(--mono); font-size: 22px; font-weight: 500; }
 .composite-badge { display: inline-block; padding: 6px 20px; border-radius: 20px; font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 8px; letter-spacing: 0.5px; }
 .composite-note { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 6px; }
-
+/* ── SCENARIO DRIVER BOX ── */
+.scenario-drivers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+}
+.driver-item { display: flex; flex-direction: column; gap: 2px; }
+.driver-label { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.driver-val { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+.driver-val.bear-color { color: var(--red); }
+.driver-val.base-color { color: var(--blue); }
+.driver-val.bull-color { color: var(--green); }
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .verdict-grid { grid-template-columns: 1fr; }
@@ -1919,7 +1936,10 @@ function renderVerdicts(d) {
   const cmp = d.current_price;
   const scenarios = ['bear','base','bull'];
   const labels    = ['Bear Case','Base Case','Bull Case'];
+  const colors    = ['bear-color','base-color','bull-color'];
   const growths   = [d.dcf.bear_growth, d.dcf.base_growth, d.dcf.bull_growth];
+  const margins   = [d.dcf.bear_margin, d.dcf.base_margin_used, d.dcf.bull_margin];
+  const waccs     = [d.dcf.bear_wacc,   d.dcf.base_wacc,        d.dcf.bull_wacc];
 
   document.getElementById('verdictGrid').innerHTML = scenarios.map((s,i) => {
     const sc      = d.dcf.scenarios[s];
@@ -1930,18 +1950,44 @@ function renderVerdicts(d) {
     const uClass  = upside >= 0 ? 'up' : 'down';
     const uSign   = upside >= 0 ? '▲ +' : '▼ ';
     const isBase  = s === 'base' ? 'base-case' : '';
+    const col     = colors[i];
+
+    const revGrowth = growths[i] != null ? growths[i] + '%' : '—';
+    const margin    = margins[i]  != null ? margins[i]  + '%' : '—';
+    const waccUsed  = waccs[i]    != null ? waccs[i]    + '%' : '—';
+
+    const revLogic  = s==='bear' ? 'Base × 0.70' : s==='bull' ? 'Base × 1.25' : '3yr Rev CAGR';
+    const mrgLogic  = s==='bear' ? 'Base − 2%'   : s==='bull' ? 'Base + 1.5%' : '3yr Avg Margin';
+    const waccLogic = s==='bear' ? 'Base + 1.5%' : s==='bull' ? 'Base − 0.75%': 'Calculated WACC';
 
     return `
-    <div class="verdict-card ${vClass} ${isBase}">
-      <div class="verdict-scenario">${labels[i]}</div>
-      <div class="verdict-growth">Growth: ${growths[i]}% p.a.</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:8px">${[d.dcf.bear_growth_label,d.dcf.base_growth_label,d.dcf.bull_growth_label][i] || ''}</div>
-      <div class="verdict-iv">${fmtIV(sc.iv_per_share)}</div>
-      <div class="verdict-cmp">vs CMP ₹${fmt(cmp)}</div>
-      <div class="verdict-upside ${uClass}">${uSign}${Math.abs(upside).toFixed(1)}%</div>
-      <span class="verdict-badge ${vClass}">${verdict.verdict}</span>
-      ${sc.equity_warning ? '<div style="font-size:10px;color:var(--red);margin-top:6px;font-family:var(--mono)">⚠ EV &lt; Net Debt</div>' : ''}
-      ${sc.tv_warning ? '<div style="font-size:10px;color:var(--orange);margin-top:4px;font-family:var(--mono)">⚠ TV &gt; 70% of EV</div>' : ''}
+    <div>
+      <div class="verdict-card ${vClass} ${isBase}" style="border-radius:14px 14px 0 0">
+        <div class="verdict-scenario">${labels[i]}</div>
+        <div class="verdict-iv">${fmtIV(sc.iv_per_share)}</div>
+        <div class="verdict-cmp">vs CMP ₹${fmt(cmp)}</div>
+        <div class="verdict-upside ${uClass}">${uSign}${Math.abs(upside).toFixed(1)}%</div>
+        <span class="verdict-badge ${vClass}">${verdict.verdict}</span>
+        ${sc.equity_warning ? '<div style="font-size:10px;color:var(--red);margin-top:6px;font-family:var(--mono)">⚠ EV &lt; Net Debt</div>' : ''}
+        ${sc.tv_warning ? '<div style="font-size:10px;color:var(--orange);margin-top:4px;font-family:var(--mono)">⚠ TV &gt; 70% of EV</div>' : ''}
+      </div>
+      <div class="scenario-drivers">
+        <div class="driver-item">
+          <div class="driver-label">Rev Growth</div>
+          <div class="driver-val ${col}">${revGrowth}</div>
+          <div class="driver-label">${revLogic}</div>
+        </div>
+        <div class="driver-item">
+          <div class="driver-label">EBIT Margin</div>
+          <div class="driver-val ${col}">${margin}</div>
+          <div class="driver-label">${mrgLogic}</div>
+        </div>
+        <div class="driver-item">
+          <div class="driver-label">WACC Used</div>
+          <div class="driver-val ${col}">${waccUsed}</div>
+          <div class="driver-label">${waccLogic}</div>
+        </div>
+      </div>
     </div>`;
   }).join('');
 }
